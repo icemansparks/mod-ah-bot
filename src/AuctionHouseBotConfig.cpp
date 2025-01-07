@@ -27,6 +27,8 @@ AHBConfig::AHBConfig(uint32 ahid)
     _auctionHouseID = ahid;
 
     //AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(ahid);
+
+    AuctionHouseObject* ah = sAuctionMgr->GetAuctionsMap(ahid);
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromFactionTemplate(ah->GetHouseId());
 
     if (!ahEntry)
