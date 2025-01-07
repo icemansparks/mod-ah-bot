@@ -49,21 +49,6 @@ enum class AHBotCommand : uint32
 
 class AuctionHouseBot
 {
-public:
-    AuctionHouseBot();
-    ~AuctionHouseBot() = default;
-
-    static AuctionHouseBot* instance();
-
-    void Update();
-    void Initialize();
-    void InitializeConfiguration();
-    void LoadValues(AHBConfig*);
-    void DecrementItemCounts(AuctionEntry* ah, uint32 itemEntry);
-    void IncrementItemCounts(AuctionEntry* ah);
-    void Commands(AHBotCommand, uint32, uint32, char*);
-    ObjectGuid::LowType GetAHBplayerGUID() { return AHBplayerGUID; };
-
 private:
     bool AHBSeller{ false };
     bool AHBBuyer{ false };
@@ -90,6 +75,21 @@ private:
     void ProcessQueryCallbacks();
 
     QueryCallbackProcessor _queryProcessor;
+
+public:
+    AuctionHouseBot();
+    ~AuctionHouseBot() = default;
+
+    static AuctionHouseBot* instance();
+
+    void Update();
+    void Initialize();
+    void InitializeConfiguration();
+    void LoadValues(AHBConfig*);
+    void DecrementItemCounts(AuctionEntry* ah, uint32 itemEntry);
+    void IncrementItemCounts(AuctionEntry* ah);
+    void Commands(AHBotCommand, uint32, uint32, char*);
+    ObjectGuid::LowType GetAHBplayerGUID() { return AHBplayerGUID; };
 };
 
 #define sAHBot AuctionHouseBot::instance()
