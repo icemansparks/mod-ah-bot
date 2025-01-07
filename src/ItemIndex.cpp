@@ -217,7 +217,7 @@ struct ItemFilter
             if (!Bind_When_Picked_Up)
                 return false;
             break;
-        case BIND_WHEN_EQUIPPED:
+        case BIND_WHEN_EQUIPED:
             if (!Bind_When_Equipped)
                 return false;
             break;
