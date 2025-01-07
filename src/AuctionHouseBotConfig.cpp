@@ -26,14 +26,14 @@ AHBConfig::AHBConfig(uint32 ahid)
 {
     _auctionHouseID = ahid;
 
-    AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(_auctionHouseID);
+    //AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(_auctionHouseID);
 
     //AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(ahid);
 
     //AuctionHouseObject* ah = sAuctionMgr->GetAuctionsMap(ahid);
     //AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromFactionTemplate(ah->GetHouseId());
 
-    if (!ahEntry)
+    if (!_auctionHouseID)
     {
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Neutral", ahid);
         _auctionHouseFactionID = 120;
