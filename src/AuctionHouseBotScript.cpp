@@ -62,7 +62,7 @@ public:
     void OnBeforeAuctionHouseMgrSendAuctionOutbiddedMail(AuctionHouseMgr* /*auctionHouseMgr*/, AuctionEntry* auction, Player* oldBidder, uint32& /*oldBidder_accId*/, Player* newBidder, uint32& newPrice, bool& /*sendNotification*/, bool& /*sendMail*/) override
     {
         if (oldBidder && !newBidder)
-            oldBidder->GetSession()->SendAuctionBidderNotification(auction->GetHouseId(), auction->Id, ObjectGuid::Create<HighGuid::Player>(sAHBot->GetAHBplayerGUID()), newPrice, auction->GetAuctionOutBid(), auction->item_template);
+            oldBidder->GetSession()->SendAuctionBidderNotification((uint32)auction->GetHouseId(), auction->Id, ObjectGuid::Create<HighGuid::Player>(sAHBot->GetAHBplayerGUID()), newPrice, auction->GetAuctionOutBid(), auction->item_template);
     }
 
     void OnAuctionAdd(AuctionHouseObject* /*ah*/, AuctionEntry* auction) override

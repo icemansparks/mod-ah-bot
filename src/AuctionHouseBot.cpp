@@ -38,8 +38,8 @@ AuctionHouseBot::AuctionHouseBot()
     _lastUpdateHorde = GameTime::GetGameTime();
     _lastUpdateNeutral = GameTime::GetGameTime();
 
-    AllianceConfig = AHBConfig(AUCTIONHOUSE_ALLIANCE);
-    HordeConfig = AHBConfig(AUCTIONHOUSE_HORDE);
+    AllianceConfig = AHBConfig(AuctionHouseId::Alliance);
+    HordeConfig = AHBConfig(AuctionHouseId::Horde);
     NeutralConfig = AHBConfig(AUCTIONHOUSE_NEUTRAL);
 }
 
@@ -602,18 +602,18 @@ void AuctionHouseBot::IncrementItemCounts(AuctionEntry* ah)
 
     AHBConfig* config = nullptr;
 
-    AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(ah->GetHouseId());
+    AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromFactionTemplate(ah->GetHouseId());
     if (!ahEntry)
     {
         LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Neutral", ah->GetHouseId());
         config = &NeutralConfig;
     }
-    else if (ahEntry->houseId == AUCTIONHOUSE_ALLIANCE)
+    else if (AuctionHouseId(ahEntry->houseId) == AuctionHouseId::Alliance)
     {
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Alliance", ah->GetHouseId());
         config = &AllianceConfig;
     }
-    else if (ahEntry->houseId == AUCTIONHOUSE_HORDE)
+    else if (AuctionHouseId(ahEntry->houseId) == AuctionHouseId::Horde)
     {
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Horde", ah->GetHouseId());
         config = &HordeConfig;
@@ -634,18 +634,18 @@ void AuctionHouseBot::DecrementItemCounts(AuctionEntry* ah, uint32 itemEntry)
 
     AHBConfig* config = nullptr;
 
-    AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(ah->GetHouseId());
+    AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromFactionTemplate(ah->GetHouseId());
     if (!ahEntry)
     {
         LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Neutral", ah->GetHouseId());
         config = &NeutralConfig;
     }
-    else if (ahEntry->houseId == AUCTIONHOUSE_ALLIANCE)
+    else if (ahEntry->houseId == AuctionHouseId::Alliance)
     {
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Alliance", ah->GetHouseId());
         config = &AllianceConfig;
     }
-    else if (ahEntry->houseId == AUCTIONHOUSE_HORDE)
+    else if (ahEntry->houseId == AuctionHouseId::Horde)
     {
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Horde", ah->GetHouseId());
         config = &HordeConfig;
@@ -662,17 +662,20 @@ void AuctionHouseBot::DecrementItemCounts(AuctionEntry* ah, uint32 itemEntry)
 void AuctionHouseBot::Commands(AHBotCommand command, uint32 ahMapID, uint32 col, char* args)
 {
     AHBConfig* config = nullptr;
-    switch (ahMapID)
+
+    ahEntry = sAuctionHouseStore.LookupEntry(ahMapID);
+
+    if (!ahEntry)
     {
-    case AUCTIONHOUSE_ALLIANCE:
-        config = &AllianceConfig;
-        break;
-    case AUCTIONHOUSE_HORDE:
-        config = &HordeConfig;
-        break;
-    case AUCTIONHOUSE_NEUTRAL:
         config = &NeutralConfig;
-        break;
+    }
+    else if (AuctionHouseId(ahEntry->houseId) == AuctionHouseId::Alliance)
+    {
+        config = &AllianceConfig;
+    }
+    else if (AuctionHouseId(ahEntry->houseId) == AuctionHouseId::Horde)
+    {
+        config = &HordeConfig;
     }
 
     std::string color;

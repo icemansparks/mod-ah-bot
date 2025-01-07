@@ -26,20 +26,22 @@ AHBConfig::AHBConfig(uint32 ahid)
 {
     _auctionHouseID = ahid;
 
-    switch (ahid)
+    ahEntry = sAuctionHouseStore.LookupEntry(ahid);
+
+    if (!ahEntry)
     {
-    case AUCTIONHOUSE_ALLIANCE:
+        //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Neutral", ahid);
+        _auctionHouseFactionID = 120;
+    }
+    else if (AuctionHouseId(ahEntry->houseId) == AuctionHouseId::Alliance)
+    {
+        //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Alliance", ahid);
         _auctionHouseFactionID = 55;
-        break;
-    case AUCTIONHOUSE_HORDE:
+    }
+    else if (AuctionHouseId(ahEntry->houseId) == AuctionHouseId::Horde)
+    {
+        //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Horde", ahid);
         _auctionHouseFactionID = 29;
-        break;
-    case AUCTIONHOUSE_NEUTRAL:
-        _auctionHouseFactionID = 120;
-        break;
-    default:
-        _auctionHouseFactionID = 120;
-        break;
     }
 }
 
