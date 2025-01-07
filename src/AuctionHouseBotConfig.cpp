@@ -26,8 +26,8 @@ AHBConfig::AHBConfig(uint32 ahid)
 {
     _auctionHouseID = ahid;
 
-    const* (uint32)AllyAH = AuctionHouseId::Alliance; // 55
-    const* (uint32)HordeAH = AuctionHouseId::Horde; // 29
+    const uint32 AllyAH = AuctionHouseId::Alliance; // 55
+    const uint32 HordeAH = AuctionHouseId::Horde; // 29
 
     switch (ahid)
     {
