@@ -26,15 +26,15 @@ AHBConfig::AHBConfig(uint32 ahid)
 {
     _auctionHouseID = ahid;
 
-    const uint8 AllyAH = AuctionHouseId::Alliance; // 55
-    const uint8 HordeAH = AuctionHouseId::Horde; // 29
+    //const uint8 AllyAH = AuctionHouseId::Alliance; // 55
+    //const uint8 HordeAH = AuctionHouseId::Horde; // 29
 
     switch (ahid)
     {
-    case AllyAH:
+    case 2:
         _auctionHouseFactionID = 55;
         break;
-    case HordeAH:
+    case 6:
         _auctionHouseFactionID = 29;
         break;
     default:
