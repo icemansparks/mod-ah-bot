@@ -72,9 +72,6 @@ private:
     void AddNewAuctionBuyerBotBid(std::shared_ptr<Player> player, std::shared_ptr<WorldSession> session, AHBConfig* config);
     void AddNewAuctionBuyerBotBidCallback(std::shared_ptr<Player> player, std::shared_ptr<WorldSession> session, std::shared_ptr<AHBConfig> config, QueryResult result);
 
-    void ProcessQueryCallbacks();
-
-    QueryCallbackProcessor _queryProcessor;
 
 public:
     AuctionHouseBot();
