@@ -38,9 +38,9 @@ AuctionHouseBot::AuctionHouseBot()
     _lastUpdateHorde = GameTime::GetGameTime();
     _lastUpdateNeutral = GameTime::GetGameTime();
 
-    AllianceConfig = AHBConfig(AuctionHouseId::Alliance);
-    HordeConfig = AHBConfig(AuctionHouseId::Horde);
-    NeutralConfig = AHBConfig(AUCTIONHOUSE_NEUTRAL);
+    AllianceConfig = AHBConfig(2);
+    HordeConfig = AHBConfig(6);
+    NeutralConfig = AHBConfig(7);
 }
 
 /*static*/ AuctionHouseBot* AuctionHouseBot::instance()
