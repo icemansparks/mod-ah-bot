@@ -28,9 +28,6 @@
 
 class AHBConfig
 {
-
-    std::unordered_map<uint32, std::tuple<uint64, uint64>> itemPriceOverrides;
-
 private:
     uint32 AHID;                     // Id
     uint32 AHFID;                    // Faction id
@@ -290,6 +287,12 @@ public:
     std::set<uint32> PurpleItemsBin;
     std::set<uint32> OrangeItemsBin;
     std::set<uint32> YellowItemsBin;
+
+    //
+    // Price Override
+    //
+
+    std::unordered_map<uint32, std::tuple<uint64, uint64>> itemPriceOverrides;
 
     //
     // Constructors/destructors
