@@ -663,7 +663,7 @@ void AuctionHouseBot::Commands(AHBotCommand command, uint32 ahMapID, uint32 col,
 {
     AHBConfig* config = nullptr;
 
-    ahEntry = sAuctionHouseStore.LookupEntry(ahMapID);
+    AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(ahMapID);
 
     if (!ahEntry)
     {

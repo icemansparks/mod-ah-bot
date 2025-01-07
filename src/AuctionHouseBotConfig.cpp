@@ -26,7 +26,7 @@ AHBConfig::AHBConfig(uint32 ahid)
 {
     _auctionHouseID = ahid;
 
-    ahEntry = sAuctionHouseStore.LookupEntry(ahid);
+    AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(ahid);
 
     if (!ahEntry)
     {
