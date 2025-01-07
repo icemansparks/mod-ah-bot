@@ -26,6 +26,20 @@ AHBConfig::AHBConfig(uint32 ahid)
 {
     _auctionHouseID = ahid;
 
+    switch (ahid)
+    {
+    case AuctionHouseId::Alliance:
+        _auctionHouseFactionID = 55;
+        break;
+    case AuctionHouseId::Horde:
+        _auctionHouseFactionID = 29;
+        break;
+    default:
+        _auctionHouseFactionID = 120;
+        break;
+    }
+
+
     //AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(_auctionHouseID);
 
     //AuctionHouseEntry const* ahEntry = sAuctionHouseStore.LookupEntry(ahid);
@@ -33,6 +47,7 @@ AHBConfig::AHBConfig(uint32 ahid)
     //AuctionHouseObject* ah = sAuctionMgr->GetAuctionsMap(ahid);
     //AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromFactionTemplate(ah->GetHouseId());
 
+    /*
     if (!_auctionHouseID)
     {
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Neutral", ahid);
@@ -48,6 +63,7 @@ AHBConfig::AHBConfig(uint32 ahid)
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Horde", ahid);
         _auctionHouseFactionID = 29;
     }
+    */
 }
 
 uint32 AHBConfig::GetMinItems()
