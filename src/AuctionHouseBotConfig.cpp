@@ -28,10 +28,10 @@ AHBConfig::AHBConfig(uint32 ahid)
 
     switch (ahid)
     {
-    case AuctionHouseId::Alliance:
+    case (AuctionHouseId(ahid) == AuctionHouseId::Alliance):
         _auctionHouseFactionID = 55;
         break;
-    case AuctionHouseId::Horde:
+    case (AuctionHouseId(ahid) == AuctionHouseId::Horde):
         _auctionHouseFactionID = 29;
         break;
     default:
