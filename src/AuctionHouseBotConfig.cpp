@@ -38,12 +38,12 @@ AHBConfig::AHBConfig(uint32 ahid)
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Neutral", ahid);
         _auctionHouseFactionID = 120;
     }
-    else if (AuctionHouseId(ahEntry->houseId) == AuctionHouseId::Alliance)
+    else if (_auctionHouseID == AuctionHouseId::Alliance)
     {
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Alliance", ahid);
         _auctionHouseFactionID = 55;
     }
-    else if (AuctionHouseId(ahEntry->houseId) == AuctionHouseId::Horde)
+    else if (_auctionHouseID == AuctionHouseId::Horde)
     {
         //LOG_DEBUG("module.ahbot", "AHBot: {} returned as House Faction. Horde", ahid);
         _auctionHouseFactionID = 29;
