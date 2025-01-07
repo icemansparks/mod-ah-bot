@@ -68,9 +68,9 @@ AHBConfig::AHBConfig(uint32 ahid, AHBConfig* conf)
 {
     Reset();
 
-    // 
+    //
     // Ids
-    // 
+    //
 
     AHID = ahid;
 
@@ -1960,7 +1960,7 @@ void AHBConfig::UpdateItemStats(uint32 id, uint32 stackSize, uint64 buyout)
         return;
     }
 
-    // 
+    //
     // Collects information about the item bought
     //
 
@@ -2164,9 +2164,9 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
 
     SetPercentages(greytg, whitetg, greentg, bluetg, purpletg, orangetg, yellowtg, greyi, whitei, greeni, bluei, purplei, orangei, yellowi);
 
-    // 
+    //
     // Load min and max prices
-    // 
+    //
 
     SetMinPrice(AHB_GREY  , WorldDatabase.Query("SELECT minpricegrey   FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
     SetMaxPrice(AHB_GREY  , WorldDatabase.Query("SELECT maxpricegrey   FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
@@ -2183,9 +2183,9 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
     SetMinPrice(AHB_YELLOW, WorldDatabase.Query("SELECT minpriceyellow FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
     SetMaxPrice(AHB_YELLOW, WorldDatabase.Query("SELECT maxpriceyellow FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
 
-    // 
+    //
     // Load min and max bid prices
-    // 
+    //
 
     SetMinBidPrice(AHB_GREY  , WorldDatabase.Query("SELECT minbidpricegrey   FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
     SetMaxBidPrice(AHB_GREY  , WorldDatabase.Query("SELECT maxbidpricegrey   FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
@@ -2202,9 +2202,9 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
     SetMinBidPrice(AHB_YELLOW, WorldDatabase.Query("SELECT minbidpriceyellow FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
     SetMaxBidPrice(AHB_YELLOW, WorldDatabase.Query("SELECT maxbidpriceyellow FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
 
-    // 
+    //
     // Load max stacks
-    // 
+    //
 
     SetMaxStack(AHB_GREY  , WorldDatabase.Query("SELECT maxstackgrey   FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
     SetMaxStack(AHB_WHITE , WorldDatabase.Query("SELECT maxstackwhite  FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
@@ -2482,9 +2482,9 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
         LOG_INFO("module", "Loaded {} items from the disabled item store", uint32(DisableItemStore.size()));
     }
 
-    // 
+    //
     // Reload the list of npc items
-    // 
+    //
 
     NpcItems.clear();
 
@@ -2512,9 +2512,9 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
         LOG_INFO("module", "Loaded {} items from NPCs", uint32(NpcItems.size()));
     }
 
-    // 
+    //
     // Reload the list from the lootable items
-    // 
+    //
 
     LootItems.clear();
 
@@ -2562,7 +2562,7 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
             {
                 Field* fields = itemsResults->Fetch();
                 uint32 item   = fields[0].Get<uint32>();
-                
+
                 if(LootItems.find(item) == LootItems.end())
                 {
                     LootItems.insert(fields[0].Get<uint32>());
@@ -3353,9 +3353,9 @@ void AHBConfig::InitializeBins()
         }
     }
 
-    // 
+    //
     // Perform reporting and the last check: if no items are disabled or in the whitelist clear the bin making the selling useless
-    // 
+    //
 
     LOG_INFO("module", "AHBot: Configuration for ah {}", AHID);
 
@@ -3426,4 +3426,27 @@ std::set<uint32> AHBConfig::getCommaSeparatedIntegers(std::string text)
     }
 
     return ret;
+}
+
+void AHBConfig::LoadPriceOverrides()
+{
+    QueryResult result = WorldDatabase.Query("SELECT item, avgPrice, minPrice FROM mod_auctionhousebot_priceOverride");
+
+    if (!result)
+    {
+        LOG_ERROR("module", "AHBConfig: No price overrides found in mod_auctionhousebot_priceOverride");
+        return;
+    }
+
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 itemId = fields[0].Get<uint32>();
+        uint64 avgPrice = fields[1].Get<uint64>();
+        uint64 minPrice = fields[2].Get<uint64>();
+
+        itemPriceOverrides[itemId] = std::make_tuple(avgPrice, minPrice);
+    } while (result->NextRow());
+
+    LOG_INFO("module", "AHBConfig: Loaded {} price overrides from mod_auctionhousebot_priceOverride", itemPriceOverrides.size());
 }

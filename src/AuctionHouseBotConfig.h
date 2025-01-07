@@ -28,6 +28,9 @@
 
 class AHBConfig
 {
+
+    std::unordered_map<uint32, std::tuple<uint64, uint64>> itemPriceOverrides;
+
 private:
     uint32 AHID;                     // Id
     uint32 AHFID;                    // Faction id
@@ -143,7 +146,7 @@ private:
     uint32 orangeItems;
     uint32 yellowItems;
 
-    // 
+    //
     // Per-item statistics
     //
 
@@ -358,6 +361,8 @@ public:
 
     void   UpdateItemStats   (uint32 id, uint32 stackSize, uint64 buyout);
     uint64 GetItemPrice      (uint32 id);
+
+    void LoadPriceOverrides();
 };
 
 //
