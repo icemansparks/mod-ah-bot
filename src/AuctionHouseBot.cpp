@@ -61,7 +61,13 @@ uint32 GetRandomGUID(const std::vector<uint32>& guids)
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, guids.size() - 1);
-    return guids[dis(gen)];
+    uint32 selectedGUID = guids[dis(gen)];
+
+    // Log the selected GUID and the list of available GUIDs
+    LOG_INFO("module", "Selected GUID: {}", selectedGUID);
+    LOG_INFO("module", "Available GUIDs: {}", fmt::join(guids, ", "));
+
+    return selectedGUID;
 }
 
 uint32 AuctionHouseBot::getElement(std::set<uint32> set, int index, uint32 botId, uint32 maxDup, AuctionHouseObject* auctionHouse)
