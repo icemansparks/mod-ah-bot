@@ -260,6 +260,10 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         // Choose a random GUID for this iteration
         uint32 guid = GetRandomGUID(config->GetBotGUIDs());
         ObjectGuid botGuid = ObjectGuid::Create<HighGuid::Player>(guid);
+
+        // Log the GUID and botGuid before attempting to find the player
+        LOG_INFO("module", "Attempting to find bot player with GUID: {} (botGuid: {})", guid, botGuid.ToString());
+
         Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
         if (!botPlayer)
         {
@@ -562,6 +566,10 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     // Choose a random GUID for this iteration
     uint32 guid = GetRandomGUID(config->GetBotGUIDs());
     ObjectGuid botGuid = ObjectGuid::Create<HighGuid::Player>(guid);
+
+    // Log the GUID and botGuid before attempting to find the player
+    LOG_INFO("module", "Attempting to find bot player with GUID: {} (botGuid: {})", guid, botGuid.ToString());
+
     Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
     if (!botPlayer)
     {
