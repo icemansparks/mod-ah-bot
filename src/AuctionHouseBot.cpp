@@ -245,7 +245,7 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
         }
 
         fields = result->Fetch();
-        std::string accountName = fields[0].GetString();
+        std::string accountName = fields[0].Get<std::string>();
 
         // Attempt to load the player
         WorldSession* session = new WorldSession(guid, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, true, 0, true);
