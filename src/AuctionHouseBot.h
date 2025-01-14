@@ -69,6 +69,8 @@ public:
     void Commands(AHBotCommand command, uint32 ahMapID, uint32 col, char* args);
 
     ObjectGuid::LowType GetAHBplayerGUID() { return _id; };
+
+    Player* FindOrLoadBotPlayer(uint32 guid);
 };
 
 std::string JoinGUIDs(const std::vector<uint32>& guids);
