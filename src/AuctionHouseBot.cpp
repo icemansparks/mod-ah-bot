@@ -326,7 +326,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         Player* botPlayer = FindOrLoadBotPlayer(guid, config);
         if (!botPlayer)
         {
-            continue;
+            return;
         }
 
         // Choose a random auction from possible auctions
@@ -343,14 +343,14 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         if (!auction)
         {
             LOG_ERROR("module", "AHBot [{}]: Could not find auction with ID {}", _id, *it);
-            continue;
+            return;
         }
 
         // Prevent from buying items from the other bots
         if (gBotsId.find(auction->owner.GetCounter()) != gBotsId.end())
         {
             LOG_INFO("module", "AHBot [{}]: Skipping auction owned by another bot", _id);
-            continue;
+            return;
         }
 
         // Get the item information
@@ -363,7 +363,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 LOG_ERROR("module", "AHBot [{}]: item {} doesn't exist, perhaps bought already?", _id, auction->item_guid.ToString());
             }
 
-            continue;
+            return;
         }
 
         // Get the item prototype
@@ -391,7 +391,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                     LOG_ERROR("module", "AHBot [{}]: Quality {} not Supported", _id, prototype->Quality);
                 }
 
-                continue;
+                return;
             }
         }
         else
@@ -410,7 +410,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                     LOG_ERROR("module", "AHBot [{}]: Quality {} not Supported", _id, prototype->Quality);
                 }
 
-                continue;
+                return;
             }
         }
 
@@ -434,7 +434,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         if (bidMax == 0)
         {
-            continue;
+            return;
         }
 
         //
@@ -626,7 +626,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     Player* botPlayer = FindOrLoadBotPlayer(guid, config);
     if (!botPlayer)
     {
-        continue;
+        return;
     }
 
     // Existing selling logic using botPlayer instead of AHBplayer
@@ -836,7 +836,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         if (itemID == 0 || loopbreaker > AUCTION_HOUSE_BOT_LOOP_BREAKER)
         {
             loopBrk++;
-            continue;
+            return;
         }
 
         // Retrieve information about the selected item
@@ -851,7 +851,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
                 LOG_ERROR("module", "AHBot [{}]: could not get prototype of item {}", _id, itemID);
             }
 
-            continue;
+            return;
         }
 
         Item* item = Item::CreateItem(itemID, 1, botPlayer);
@@ -865,7 +865,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
                 LOG_ERROR("module", "AHBot [{}]: could not create item from prototype {}", _id, itemID);
             }
 
-            continue;
+            return;
         }
 
         // Start interacting with the item by adding a random property
@@ -888,7 +888,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             }
 
             item->RemoveFromUpdateQueueOf(botPlayer);
-            continue;
+            return;
         }
 
         // Determine the price
