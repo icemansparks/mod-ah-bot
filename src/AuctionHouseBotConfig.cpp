@@ -2050,6 +2050,8 @@ void AHBConfig::InitializeFromFile()
     ItemsPerCycle                  = sConfigMgr->GetOption<uint32>("AuctionHouseBot.ItemsPerCycle"          , 200);
     minItems                       = sConfigMgr->GetOption<uint32>("AuctionHouseBot.MinItems"          , 1000);
     maxItems                       = sConfigMgr->GetOption<uint32>("AuctionHouseBot.MaxItems"          , 5000);
+    maxStackSize                   = sConfigMgr->GetOption<uint32>("AuctionHouseBot.MaxStackSize", 20);
+
 
     //
     // Flags: item types

@@ -24,6 +24,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include "ObjectMgr.h"
 
@@ -35,6 +36,7 @@ private:
 
     uint32 minItems;
     uint32 maxItems;
+    uint32 maxStackSize;
 
     uint32 percentGreyTradeGoods;
     uint32 percentWhiteTradeGoods;
@@ -152,8 +154,8 @@ private:
     std::map<uint32, uint64> itemsSum;
     std::map<uint32, uint64> itemsPrice;
 
-    void   InitializeFromFile();
-    void   InitializeFromSql(std::set<uint32> botsIds);
+    void InitializeFromFile();
+    void InitializeFromSql(std::set<uint32> botsIds);
 
     std::set<uint32> getCommaSeparatedIntegers(std::string text);
 
@@ -164,75 +166,75 @@ public:
     // Debugging
     //
 
-    bool   DebugOut;
-    bool   DebugOutConfig;
-    bool   DebugOutFilters;
-    bool   DebugOutBuyer;
-    bool   DebugOutSeller;
+    bool DebugOut;
+    bool DebugOutConfig;
+    bool DebugOutFilters;
+    bool DebugOutBuyer;
+    bool DebugOutSeller;
 
     //
     // Tracing
     //
 
-    bool   TraceSeller;
-    bool   TraceBuyer;
+    bool TraceSeller;
+    bool TraceBuyer;
 
     //
     // Setup
     //
 
-    bool   AHBSeller;
-    bool   AHBBuyer;
-    bool   BuyMethod;
-    bool   SellMethod;
-    bool   SellAtMarketPrice;
+    bool AHBSeller;
+    bool AHBBuyer;
+    bool BuyMethod;
+    bool SellMethod;
+    bool SellAtMarketPrice;
     uint32 MarketResetThreshold;
-    bool   ConsiderOnlyBotAuctions;
+    bool ConsiderOnlyBotAuctions;
     uint32 ItemsPerCycle;
 
     //
     // Filters
     //
 
-    bool   Vendor_Items;
-    bool   Loot_Items;
-    bool   Other_Items;
-    bool   Vendor_TGs;
-    bool   Loot_TGs;
-    bool   Other_TGs;
-    bool   Profession_Items;
+    bool Vendor_Items;
+    bool Loot_Items;
+    bool Other_Items;
+    bool Vendor_TGs;
+    bool Loot_TGs;
+    bool Other_TGs;
+    bool Profession_Items;
 
-    bool   No_Bind;
-    bool   Bind_When_Picked_Up;
-    bool   Bind_When_Equipped;
-    bool   Bind_When_Use;
-    bool   Bind_Quest_Item;
+    bool No_Bind;
+    bool Bind_When_Picked_Up;
+    bool Bind_When_Equipped;
+    bool Bind_When_Use;
+    bool Bind_Quest_Item;
 
     uint32 DuplicatesCount;
     uint32 ElapsingTimeClass;
 
-    bool   DivisibleStacks;
-    bool   DisablePermEnchant;
-    bool   DisableConjured;
-    bool   DisableGems;
-    bool   DisableMoney;
-    bool   DisableMoneyLoot;
-    bool   DisableLootable;
-    bool   DisableKeys;
-    bool   DisableDuration;
-    bool   DisableBOP_Or_Quest_NoReqLevel;
+    bool DivisibleStacks;
+    bool DisablePermEnchant;
+    bool DisableConjured;
+    bool DisableGems;
+    bool DisableMoney;
+    bool DisableMoneyLoot;
+    bool DisableLootable;
+    bool DisableKeys;
+    bool DisableDuration;
+    bool DisableBOP_Or_Quest_NoReqLevel;
 
-    bool   DisableWarriorItems;
-    bool   DisablePaladinItems;
-    bool   DisableHunterItems;
-    bool   DisableRogueItems;
-    bool   DisablePriestItems;
-    bool   DisableDKItems;
-    bool   DisableShamanItems;
-    bool   DisableMageItems;
-    bool   DisableWarlockItems;
-    bool   DisableUnusedClassItems;
-    bool   DisableDruidItems;
+    bool DisableWarriorItems;
+    bool DisablePaladinItems;
+    bool DisableHunterItems;
+    bool DisableRogueItems;
+    bool DisablePriestItems;
+    bool DisableDKItems;
+    bool DisableShamanItems;
+    bool DisableMageItems;
+    bool DisableWarlockItems;
+    bool DisableUnusedClassItems;
+    bool DisableDruidItems;
 
     uint32 DisableItemsBelowLevel;
     uint32 DisableItemsAboveLevel;
@@ -301,72 +303,77 @@ public:
     // Constructors/destructors
     //
 
+    AHBConfig();
     AHBConfig(uint32 ahid, AHBConfig* conf);
     AHBConfig(uint32 ahid);
-    AHBConfig();
     ~AHBConfig();
 
     //
     // Ruotines
     //
 
-    void   Initialize(std::set<uint32> botsIds);
-    void   InitializeBins();
-    void   Reset();
+    void Initialize(std::set<uint32> botsIds);
+    void InitializeBins();
+    void Reset();
 
-    uint32 GetAHID();
-    uint32 GetAHFID();
+    uint32 GetAHID() const { return AHID; }
+    uint32 GetAHFID() const { return AHFID; }
 
-    void   SetMinItems       (uint32 value);
-    uint32 GetMinItems       ();
+    uint32 GetMinItems() const { return minItems; }
+    void SetMinItems(uint32 value) { minItems = value; }
 
-    void   SetMaxItems       (uint32 value);
-    uint32 GetMaxItems       ();
+    uint32 GetMaxItems() const { return maxItems; }
+    void SetMaxItems(uint32 value) { maxItems = value; }
 
-    void   SetPercentages    (uint32 greytg, uint32 whitetg, uint32 greentg, uint32 bluetg, uint32 purpletg, uint32 orangetg, uint32 yellowtg,
-                              uint32 greyi , uint32 whitei , uint32 greeni , uint32 bluei , uint32 purplei , uint32 orangei , uint32 yellowi);
-    uint32 GetPercentages    (uint32 color);
+    uint32 GetMaxStackSize() const { return maxStackSize; }
+    void SetMaxStackSize(uint32 value) { maxStackSize = value; }
 
-    void   SetMinPrice       (uint32 color, uint32 value);
-    uint32 GetMinPrice       (uint32 color);
+    std::set<uint32> getCommaSeparatedIntegers(std::string text);
 
-    void   SetMaxPrice       (uint32 color, uint32 value);
-    uint32 GetMaxPrice       (uint32 color);
+    void SetPercentages(uint32 greytg, uint32 whitetg, uint32 greentg, uint32 bluetg, uint32 purpletg, uint32 orangetg, uint32 yellowtg,
+                        uint32 greyi, uint32 whitei, uint32 greeni, uint32 bluei, uint32 purplei, uint32 orangei, uint32 yellowi);
+    uint32 GetPercentages(uint32 color);
 
-    void   SetMinBidPrice    (uint32 color, uint32 value);
-    uint32 GetMinBidPrice    (uint32 color);
+    void SetMinPrice(uint32 color, uint32 value);
+    uint32 GetMinPrice(uint32 color);
 
-    void   SetMaxBidPrice    (uint32 color, uint32 value);
-    uint32 GetMaxBidPrice    (uint32 color);
+    void SetMaxPrice(uint32 color, uint32 value);
+    uint32 GetMaxPrice(uint32 color);
 
-    void   SetMaxStack       (uint32 color, uint32 value);
-    uint32 GetMaxStack       (uint32 color);
+    void SetMinBidPrice(uint32 color, uint32 value);
+    uint32 GetMinBidPrice(uint32 color);
 
-    void   SetBuyerPrice     (uint32 color, uint32 value);
-    uint32 GetBuyerPrice     (uint32 color);
+    void SetMaxBidPrice(uint32 color, uint32 value);
+    uint32 GetMaxBidPrice(uint32 color);
 
-    void   SetBiddingInterval(uint32 value);
+    void SetMaxStack(uint32 color, uint32 value);
+    uint32 GetMaxStack(uint32 color);
+
+    void SetBuyerPrice(uint32 color, uint32 value);
+    uint32 GetBuyerPrice(uint32 color);
+
+    void SetBiddingInterval(uint32 value);
     uint32 GetBiddingInterval();
 
-    void   SetBidsPerInterval(uint32 value);
+    void SetBidsPerInterval(uint32 value);
     uint32 GetBidsPerInterval();
 
-    void   CalculatePercents ();
-    uint32 GetMaximum        (uint32 color);
+    void CalculatePercents();
+    uint32 GetMaximum(uint32 color);
 
-    void   DecItemCounts     (uint32 Class, uint32 Quality);
-    void   DecItemCounts     (uint32 color);
+    void DecItemCounts(uint32 Class, uint32 Quality);
+    void DecItemCounts(uint32 color);
 
-    void   IncItemCounts     (uint32 Class, uint32 Quality);
-    void   IncItemCounts     (uint32 color);
+    void IncItemCounts(uint32 Class, uint32 Quality);
+    void IncItemCounts(uint32 color);
 
-    void   ResetItemCounts   ();
-    uint32 TotalItemCounts   ();
+    void ResetItemCounts();
+    uint32 TotalItemCounts();
 
-    uint32 GetItemCounts     (uint32 color);
+    uint32 GetItemCounts(uint32 color);
 
-    void   UpdateItemStats   (uint32 id, uint32 stackSize, uint64 buyout);
-    uint64 GetItemPrice      (uint32 id);
+    void UpdateItemStats(uint32 id, uint32 stackSize, uint64 buyout);
+    uint64 GetItemPrice(uint32 id);
 
     void LoadPriceOverrides();
 

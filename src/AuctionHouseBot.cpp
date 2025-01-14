@@ -97,6 +97,8 @@ uint32 AuctionHouseBot::getElement(std::set<uint32> set, int index, uint32 botId
 
 uint32 AuctionHouseBot::getStackCount(AHBConfig* config, uint32 max)
 {
+    uint32 maxStackSize = config->GetMaxStackSize();
+
     if (max == 1)
     {
         return 1;
@@ -137,7 +139,7 @@ uint32 AuctionHouseBot::getStackCount(AHBConfig* config, uint32 max)
     // Totally random
     //
 
-    return urand(1, max);
+    return urand(1, std::min(max, maxStackSize));
 }
 
 uint32 AuctionHouseBot::getElapsedTime(uint32 timeClass)
@@ -568,7 +570,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
-    if (auctions >= config->GetMinItems())
+    if (auctions >= minItems)
     {
         aboveMin = true;
         if (config->DebugOutSeller)
@@ -596,6 +598,9 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     {
         items = (maxItems - auctions);
     }
+
+    // Use the max stack size configuration value
+    uint32 maxStackSize = config->GetMaxStackSize();
 
     // Retrieve the configuration for this run
     uint32 greyTGcount   = config->GetMaximum(AHB_GREY_TG);
