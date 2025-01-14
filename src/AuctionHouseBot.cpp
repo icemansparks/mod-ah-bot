@@ -268,9 +268,28 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         if (!botPlayer)
         {
             LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Available GUIDs: {}", _id, guid, fmt::join(config->GetBotGUIDs(), ", "));
-            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
 
-            return;
+            // Additional logging to check if the player is loaded
+            if (sObjectMgr->GetPlayer(botGuid))
+            {
+                LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
+            }
+            else
+            {
+                LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not loaded", _id, guid);
+            }
+
+            // Attempt to load the player
+            botPlayer = sObjectMgr->GetPlayer(botGuid);
+            if (botPlayer)
+            {
+                LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
+            }
+            else
+            {
+                LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
+                return;
+            }
         }
 
         // Choose a random auction from possible auctions
@@ -573,12 +592,31 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     LOG_INFO("module", "Attempting to find bot player with GUID: {} (botGuid: {})", guid, botGuid.ToString());
 
     Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
-    if (!botPlayer)
+     if (!botPlayer)
     {
         LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Available GUIDs: {}", _id, guid, fmt::join(config->GetBotGUIDs(), ", "));
-        LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
 
-        return;
+        // Additional logging to check if the player is loaded
+        if (sObjectMgr->GetPlayer(botGuid))
+        {
+            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
+        }
+        else
+        {
+            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not loaded", _id, guid);
+        }
+
+        // Attempt to load the player
+        botPlayer = sObjectMgr->GetPlayer(botGuid);
+        if (botPlayer)
+        {
+            LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
+        }
+        else
+        {
+            LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
+            return;
+        }
     }
 
     // Existing selling logic using botPlayer instead of AHBplayer
