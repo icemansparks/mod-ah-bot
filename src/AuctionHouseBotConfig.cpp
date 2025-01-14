@@ -611,7 +611,7 @@ uint32 AHBConfig::GetAHFID()
     return AHFID;
 }
 
-uint32 AHBConfig::GetMaxStackSize() const
+uint32 AHBConfig::GetMaxStackSize()
 {
     return maxStackSize;
 }
