@@ -611,6 +611,11 @@ uint32 AHBConfig::GetAHFID()
     return AHFID;
 }
 
+uint32 AHBConfig::GetMaxStackSize() const
+{
+    return maxStackSize;
+}
+
 void AHBConfig::SetMinItems(uint32 value)
 {
     minItems = value;
