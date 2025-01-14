@@ -255,6 +255,7 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
         if (botPlayer->LoadFromDB(botGuid, holder))
         {
             LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
+            ObjectAccessor::AddObject(botPlayer);
         }
         else
         {
