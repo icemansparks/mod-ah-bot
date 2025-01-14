@@ -211,58 +211,43 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
     // Log the GUID and botGuid before attempting to find the player
     LOG_INFO("module", "Attempting to find bot player with GUID: {} (botGuid: {})", guid, botGuid.ToString());
 
-    Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
-    if (!botPlayer)
+    // Query the database for the account name
+    QueryResult result = CharacterDatabase.Query("SELECT account FROM characters WHERE guid = {}", guid);
+    if (!result)
     {
-        LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Available GUIDs: {}", _id, guid, fmt::join(config->GetBotGUIDs(), ", "));
+        LOG_ERROR("module", "AHBot [{}]: Could not find account for player with GUID {}", _id, guid);
+        return nullptr;
+    }
 
-        // Additional logging to check if the player is connected
-        if (ObjectAccessor::FindConnectedPlayer(botGuid))
-        {
-            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is connected but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
-        }
-        else
-        {
-            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not connected", _id, guid);
-        }
+    Field* fields = result->Fetch();
+    uint32 accountId = fields[0].Get<uint32>();
 
-        // Query the database for the account name
-        QueryResult result = CharacterDatabase.Query("SELECT account FROM characters WHERE guid = {}", guid);
-        if (!result)
-        {
-            LOG_ERROR("module", "AHBot [{}]: Could not find account for player with GUID {}", _id, guid);
-            return nullptr;
-        }
+    result = LoginDatabase.Query("SELECT username FROM account WHERE id = {}", accountId);
+    if (!result)
+    {
+        LOG_ERROR("module", "AHBot [{}]: Could not find account name for account ID {}", _id, accountId);
+        return nullptr;
+    }
 
-        Field* fields = result->Fetch();
-        uint32 accountId = fields[0].Get<uint32>();
+    fields = result->Fetch();
+    std::string accountName = fields[0].Get<std::string>();
 
-        result = LoginDatabase.Query("SELECT username FROM account WHERE id = {}", accountId);
-        if (!result)
-        {
-            LOG_ERROR("module", "AHBot [{}]: Could not find account name for account ID {}", _id, accountId);
-            return nullptr;
-        }
+    // Attempt to load the player
+    WorldSession* session = new WorldSession(accountId, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, true, 0, true);
+    Player* botPlayer = new Player(session);
 
-        std::string accountName = fields[1].Get<std::string>();
-
-        // Attempt to load the player
-        WorldSession* session = new WorldSession(accountId, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, true, 0, true);
-        botPlayer = new Player(session);
-
-        // Create a CharacterDatabaseQueryHolder object
-        CharacterDatabaseQueryHolder holder;
-        if (botPlayer->LoadFromDB(botGuid, holder))
-        {
-            LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
-        }
-        else
-        {
-            LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
-            delete botPlayer;
-            delete session;
-            return nullptr;
-        }
+    // Create a CharacterDatabaseQueryHolder object
+    CharacterDatabaseQueryHolder holder;
+    if (botPlayer->LoadFromDB(botGuid, holder))
+    {
+        LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
+    }
+    else
+    {
+        LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
+        delete botPlayer;
+        delete session;
+        return nullptr;
     }
 
     return botPlayer;
