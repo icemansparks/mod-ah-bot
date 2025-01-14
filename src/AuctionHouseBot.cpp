@@ -235,7 +235,7 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
         }
 
         Field* fields = result->Fetch();
-        uint32 accountId = fields[0].GetUInt32();
+        uint32 accountId = fields[0].Get<uint32>();
 
         result = LoginDatabase.Query("SELECT username FROM account WHERE id = {}", accountId);
         if (!result)
@@ -244,7 +244,6 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
             return nullptr;
         }
 
-        Field* fields = result->Fetch();
         std::string accountName = fields[1].Get<std::string>();
 
         // Attempt to load the player
