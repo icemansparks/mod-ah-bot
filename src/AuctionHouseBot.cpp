@@ -259,7 +259,19 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
             ObjectAccessor::AddObject(botPlayer);
 
             // Ensure the player is in the world
-            botPlayer->GetMap()->AddPlayerToMap(botPlayer);
+            Map* map = botPlayer->GetMap();
+            if (map)
+            {
+                map->AddPlayerToMap(botPlayer);
+                LOG_INFO("module", "AHBot [{}]: Player with GUID {} added to map", _id, guid);
+            }
+            else
+            {
+                LOG_ERROR("module", "AHBot [{}]: Could not find map for player with GUID {}", _id, guid);
+                delete botPlayer;
+                delete session;
+                return nullptr;
+            }
         }
         else
         {
