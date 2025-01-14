@@ -226,8 +226,29 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
             LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not connected", _id, guid);
         }
 
+        // Query the database for the account name
+        QueryResult result = CharacterDatabase.Query("SELECT account FROM characters WHERE guid = {}", guid);
+        if (!result)
+        {
+            LOG_ERROR("module", "AHBot [{}]: Could not find account for player with GUID {}", _id, guid);
+            return nullptr;
+        }
+
+        Field* fields = result->Fetch();
+        uint32 accountId = fields[0].GetUInt32();
+
+        result = LoginDatabase.Query("SELECT username FROM account WHERE id = {}", accountId);
+        if (!result)
+        {
+            LOG_ERROR("module", "AHBot [{}]: Could not find account name for account ID {}", _id, accountId);
+            return nullptr;
+        }
+
+        fields = result->Fetch();
+        std::string accountName = fields[0].GetString();
+
         // Attempt to load the player
-        WorldSession* session = new WorldSession(guid, nullptr, SEC_PLAYER, 0, 0, LOCALE_enUS, 0, false, false, 0);
+        WorldSession* session = new WorldSession(guid, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, true, 0, true);
         botPlayer = new Player(session);
         if (botPlayer->LoadFromDB(guid, nullptr, true))
         {
