@@ -204,6 +204,47 @@ uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* 
     return totalAuctions;
 }
 
+Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid)
+{
+    ObjectGuid botGuid = ObjectGuid::Create<HighGuid::Player>(guid);
+
+    // Log the GUID and botGuid before attempting to find the player
+    LOG_INFO("module", "Attempting to find bot player with GUID: {} (botGuid: {})", guid, botGuid.ToString());
+
+    Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
+    if (!botPlayer)
+    {
+        LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Available GUIDs: {}", _id, guid, fmt::join(config->GetBotGUIDs(), ", "));
+
+        // Additional logging to check if the player is connected
+        if (ObjectAccessor::FindConnectedPlayer(botGuid))
+        {
+            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is connected but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
+        }
+        else
+        {
+            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not connected", _id, guid);
+        }
+
+        // Attempt to load the player
+        WorldSession* session = new WorldSession(guid, nullptr, SEC_PLAYER, 0, 0, LOCALE_enUS, 0, false, false, 0);
+        botPlayer = new Player(session);
+        if (botPlayer->LoadFromDB(guid, nullptr, true))
+        {
+            LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
+        }
+        else
+        {
+            LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
+            delete botPlayer;
+            delete session;
+            return nullptr;
+        }
+    }
+
+    return botPlayer;
+}
+
 // =============================================================================
 // This routine performs the bidding operations for the bot
 // =============================================================================
@@ -259,38 +300,10 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     {
         // Choose a random GUID for this iteration
         uint32 guid = GetRandomGUID(config->GetBotGUIDs());
-        ObjectGuid botGuid = ObjectGuid::Create<HighGuid::Player>(guid);
-
-        // Log the GUID and botGuid before attempting to find the player
-        LOG_INFO("module", "Attempting to find bot player with GUID: {} (botGuid: {})", guid, botGuid.ToString());
-
-        Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
+        Player* botPlayer = FindOrLoadBotPlayer(guid);
         if (!botPlayer)
         {
-            LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Available GUIDs: {}", _id, guid, fmt::join(config->GetBotGUIDs(), ", "));
-
-            // Additional logging to check if the player is loaded
-            if (ObjectAccessor::FindConnectedPlayer(botGuid))
-            {
-                LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
-            }
-            else
-            {
-                LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not loaded", _id, guid);
-            }
-
-            // Attempt to load the player
-            botPlayer = new Player();
-            if (botPlayer->LoadFromDB(guid, nullptr, true))
-            {
-                LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
-            }
-            else
-            {
-                LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
-                delete botPlayer;
-                return;
-            }
+            continue;
         }
 
         // Choose a random auction from possible auctions
@@ -587,38 +600,10 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
     // Choose a random GUID for this iteration
     uint32 guid = GetRandomGUID(config->GetBotGUIDs());
-    ObjectGuid botGuid = ObjectGuid::Create<HighGuid::Player>(guid);
-
-    // Log the GUID and botGuid before attempting to find the player
-    LOG_INFO("module", "Attempting to find bot player with GUID: {} (botGuid: {})", guid, botGuid.ToString());
-
-    Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
-     if (!botPlayer)
+    Player* botPlayer = FindOrLoadBotPlayer(guid);
+    if (!botPlayer)
     {
-        LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Available GUIDs: {}", _id, guid, fmt::join(config->GetBotGUIDs(), ", "));
-
-        // Additional logging to check if the player is loaded
-        if (ObjectAccessor::FindConnectedPlayer(botGuid))
-        {
-            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
-        }
-        else
-        {
-            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not loaded", _id, guid);
-        }
-
-        // Attempt to load the player
-        botPlayer = new Player();
-        if (botPlayer->LoadFromDB(guid, nullptr, true))
-        {
-            LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
-        }
-        else
-        {
-            LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
-            delete botPlayer;
-            return;
-        }
+        continue;
     }
 
     // Existing selling logic using botPlayer instead of AHBplayer
