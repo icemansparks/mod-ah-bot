@@ -280,14 +280,15 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             }
 
             // Attempt to load the player
-            botPlayer = ObjectAccessor::LoadPlayer(botGuid);
-            if (botPlayer)
+            botPlayer = new Player();
+            if (botPlayer->LoadFromDB(guid, nullptr, true))
             {
                 LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
             }
             else
             {
                 LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
+                delete botPlayer;
                 return;
             }
         }
@@ -607,14 +608,15 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         }
 
         // Attempt to load the player
-        botPlayer = ObjectAccessor::LoadPlayer(botGuid);
-        if (botPlayer)
+        botPlayer = new Player();
+        if (botPlayer->LoadFromDB(guid, nullptr, true))
         {
             LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
         }
         else
         {
             LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
+            delete botPlayer;
             return;
         }
     }
