@@ -204,7 +204,7 @@ uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* 
     return totalAuctions;
 }
 
-Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid)
+Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
 {
     ObjectGuid botGuid = ObjectGuid::Create<HighGuid::Player>(guid);
 
@@ -300,7 +300,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     {
         // Choose a random GUID for this iteration
         uint32 guid = GetRandomGUID(config->GetBotGUIDs());
-        Player* botPlayer = FindOrLoadBotPlayer(guid);
+        Player* botPlayer = FindOrLoadBotPlayer(guid, config);
         if (!botPlayer)
         {
             continue;
@@ -600,7 +600,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
     // Choose a random GUID for this iteration
     uint32 guid = GetRandomGUID(config->GetBotGUIDs());
-    Player* botPlayer = FindOrLoadBotPlayer(guid);
+    Player* botPlayer = FindOrLoadBotPlayer(guid, config);
     if (!botPlayer)
     {
         continue;

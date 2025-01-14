@@ -70,7 +70,7 @@ public:
 
     ObjectGuid::LowType GetAHBplayerGUID() { return _id; };
 
-    Player* FindOrLoadBotPlayer(uint32 guid);
+    Player* FindOrLoadBotPlayer(uint32 guid, AHBConfig* config);
 };
 
 std::string JoinGUIDs(const std::vector<uint32>& guids);
