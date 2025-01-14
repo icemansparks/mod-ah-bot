@@ -265,9 +265,20 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         LOG_INFO("module", "Attempting to find bot player with GUID: {} (botGuid: {})", guid, botGuid.ToString());
 
         Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
-        if (!botPlayer)
-        {
-            LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}", _id, guid);
+       if (!botPlayer)
+       {
+            LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Total auctions: {}, Min items: {}, Max items: {}, GUIDs: {}", _id, guid, totalAuctions, minItems, maxItems, config->GetBotGUIDs().size());
+
+            // Additional logging to check if the player is loaded
+            if (ObjectAccessor::FindPlayer(guid))
+            {
+                LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
+            }
+            else
+            {
+                LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not loaded", _id, guid);
+            }
+
             continue;
         }
 
@@ -573,8 +584,19 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
     if (!botPlayer)
     {
-        LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}", _id, guid);
-        return;
+        LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Total auctions: {}, Min items: {}, Max items: {}, GUIDs: {}", _id, guid, totalAuctions, minItems, maxItems, config->GetBotGUIDs().size());
+
+        // Additional logging to check if the player is loaded
+        if (ObjectAccessor::FindPlayer(guid))
+        {
+            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
+        }
+        else
+        {
+            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not loaded", _id, guid);
+        }
+
+        continue;
     }
 
     // Existing selling logic using botPlayer instead of AHBplayer
