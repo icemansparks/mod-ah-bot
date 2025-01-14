@@ -247,7 +247,7 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
         std::string accountName = fields[1].Get<std::string>();
 
         // Attempt to load the player
-        WorldSession* session = new WorldSession(guid, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, true, 0, true);
+        WorldSession* session = new WorldSession(accountId, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, true, 0, true);
         botPlayer = new Player(session);
 
         // Create a CharacterDatabaseQueryHolder object
@@ -255,23 +255,6 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
         if (botPlayer->LoadFromDB(botGuid, holder))
         {
             LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
-            // Ensure the player is added to the object accessor
-            ObjectAccessor::AddObject(botPlayer);
-
-            // Ensure the player is in the world
-            Map* map = botPlayer->GetMap();
-            if (map)
-            {
-                map->AddPlayerToMap(botPlayer);
-                LOG_INFO("module", "AHBot [{}]: Player with GUID {} added to map", _id, guid);
-            }
-            else
-            {
-                LOG_ERROR("module", "AHBot [{}]: Could not find map for player with GUID {}", _id, guid);
-                delete botPlayer;
-                delete session;
-                return nullptr;
-            }
         }
         else
         {
