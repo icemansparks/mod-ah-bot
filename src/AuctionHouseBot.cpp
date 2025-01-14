@@ -186,6 +186,16 @@ uint32 AuctionHouseBot::getNofAuctions(AHBConfig* config, AuctionHouseObject* au
     return count;
 }
 
+uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse)
+{
+    uint32 totalAuctions = 0;
+    for (uint32 guid : config->GetBotGUIDs())
+    {
+        totalAuctions += getNofAuctions(config, auctionHouse, ObjectGuid::Create<HighGuid::Player>(guid));
+    }
+    return totalAuctions;
+}
+
 // =============================================================================
 // This routine performs the bidding operations for the bot
 // =============================================================================
@@ -538,7 +548,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     }
 
     // Calculate total auctions across all characters
-    uint32 totalAuctions = GetTotalAuctions(config, auctionHouse);
+    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
     uint32 minItems = config->GetMinItems();
     uint32 maxItems = config->GetMaxItems();
 
