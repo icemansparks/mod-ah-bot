@@ -541,6 +541,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
     // Calculate total auctions across all characters
     uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
+    uint32 minItems = config->GetMinItems();
     uint32 maxItems = config->GetMaxItems();
 
     if (maxItems == 0 || totalAuctions >= maxItems)
@@ -561,11 +562,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}", _id, guid);
         return;
     }
-
-    // Calculate total auctions across all characters
-    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
-    uint32 minItems = config->GetMinItems();
-    uint32 maxItems = config->GetMaxItems();
 
     // Existing selling logic using botPlayer instead of AHBplayer
     uint32 auctions = getNofAuctions(config, auctionHouse, botPlayer->GetGUID());
