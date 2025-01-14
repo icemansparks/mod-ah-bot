@@ -252,7 +252,7 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
 
         // Create a CharacterDatabaseQueryHolder object
         CharacterDatabaseQueryHolder holder;
-        if (botPlayer->LoadFromDB(guid, holder))
+        if (botPlayer->LoadFromDB(botGuid, holder))
         {
             LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
         }
