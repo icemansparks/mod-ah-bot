@@ -204,12 +204,10 @@ uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* 
 
 void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* session)
 {
-    //
     // Check if disabled
-    //
-
     if (!config->AHBBuyer)
     {
+        LOG_INFO("module", "AHBot [{}]: Buyer is disabled", _id);
         return;
     }
 
@@ -219,17 +217,19 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
     if (!result)
     {
+        LOG_ERROR("module", "AHBot [{}]: No items found to buy", _id);
         return;
     }
 
     if (result->GetRowCount() == 0)
     {
+        LOG_INFO("module", "AHBot [{}]: No items to buy", _id);
         return;
     }
 
     // Fetches content of selected AH to look for possible bids
     AuctionHouseObject* auctionHouse = sAuctionMgr->GetAuctionsMap(config->GetAHFID());
-    std::set<uint32>    possibleBids;
+    std::set<uint32> possibleBids;
 
     do
     {
@@ -248,10 +248,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         return;
     }
 
-    //
     // Perform the operation for a maximum amount of bids attempts configured
-    //
-
     for (uint32 count = 1; count <= config->GetBidsPerInterval(); ++count)
     {
         // Choose a random GUID for this iteration
@@ -260,6 +257,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
         if (!botPlayer)
         {
+            LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}", _id, guid);
             continue;
         }
 
@@ -276,12 +274,14 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         if (!auction)
         {
+            LOG_ERROR("module", "AHBot [{}]: Could not find auction with ID {}", _id, *it);
             continue;
         }
 
         // Prevent from buying items from the other bots
         if (gBotsId.find(auction->owner.GetCounter()) != gBotsId.end())
         {
+            LOG_INFO("module", "AHBot [{}]: Skipping auction owned by another bot", _id);
             continue;
         }
 
@@ -418,18 +418,12 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             LOG_INFO("module", "-------------------------------------------------");
         }
 
-        //
         // Check whether we do normal bid, or buyout
-        //
-
         bool bought = false;
 
         if ((bidprice < auction->buyout) || (auction->buyout == 0))
         {
-            //
             // Perform a new bid on the auction
-            //
-
             if (auction->bidder)
             {
                 if (auction->bidder != AHBplayer->GetGUID())
@@ -511,6 +505,8 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             }
         }
     }
+
+    LOG_INFO("module", "AHBot [{}]: Completed buying process", _id);
 }
 
 // =============================================================================
@@ -522,6 +518,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     // Check if disabled
     if (!config->AHBSeller)
     {
+        LOG_INFO("module", "AHBot [{}]: Seller is disabled", _id);
         return;
     }
 
@@ -529,16 +526,31 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromFactionTemplate(config->GetAHFID());
     if (!ahEntry)
     {
+        LOG_ERROR("module", "AHBot [{}]: Could not retrieve auction house entry", _id);
         return;
     }
 
     AuctionHouseObject* auctionHouse = sAuctionMgr->GetAuctionsMap(config->GetAHFID());
     if (!auctionHouse)
     {
+        LOG_ERROR("module", "AHBot [{}]: Could not retrieve auction house object", _id);
         return;
     }
 
     auctionHouse->Update();
+
+    // Calculate total auctions across all characters
+    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
+    uint32 maxItems = config->GetMaxItems();
+
+    if (maxItems == 0 || totalAuctions >= maxItems)
+    {
+        if (config->DebugOutSeller)
+        {
+            LOG_ERROR("module", "AHBot [{}]: Total auctions at or above maximum", _id);
+        }
+        return;
+    }
 
     // Choose a random GUID for this iteration
     uint32 guid = GetRandomGUID(config->GetBotGUIDs());
@@ -546,6 +558,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     Player* botPlayer = ObjectAccessor::FindPlayer(botGuid);
     if (!botPlayer)
     {
+        LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}", _id, guid);
         return;
     }
 
@@ -557,11 +570,10 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     // Existing selling logic using botPlayer instead of AHBplayer
     uint32 auctions = getNofAuctions(config, auctionHouse, botPlayer->GetGUID());
     uint32 items = 0;
+    bool aboveMin = false;
+    bool aboveMax = false;
 
-    bool   aboveMin = false;
-    bool   aboveMax = false;
-
-    if (maxItems == 0 )
+    if (maxItems == 0)
     {
         if (config->DebugOutSeller)
         {
@@ -590,13 +602,14 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
-    if ((maxItems - auctions) >= config->ItemsPerCycle)
+    // Determine the number of items to list
+    if ((maxItems - totalAuctions) >= config->ItemsPerCycle)
     {
         items = config->ItemsPerCycle;
     }
     else
     {
-        items = (maxItems - auctions);
+        items = (maxItems - totalAuctions);
     }
 
     // Use the max stack size configuration value
