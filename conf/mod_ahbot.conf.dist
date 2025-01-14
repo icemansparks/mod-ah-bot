@@ -120,6 +120,8 @@ AuctionHouseBot.ConsiderOnlyBotAuctions = 0
 AuctionHouseBot.DuplicatesCount = 0
 AuctionHouseBot.DivisibleStacks = 0
 AuctionHouseBot.ElapsingTimeClass = 1
+AuctionHouseBot.MinItems = 10000
+AuctionHouseBot.MaxItems = 15000
 
 ###############################################################################
 # AUCTION HOUSE BOT FILTERS PART 1
