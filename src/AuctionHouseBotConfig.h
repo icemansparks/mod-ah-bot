@@ -316,8 +316,8 @@ public:
     void InitializeBins();
     void Reset();
 
-    uint32 GetAHID() const { return AHID; }
-    uint32 GetAHFID() const { return AHFID; }
+    uint32 GetAHID() const;
+    uint32 GetAHFID() const;
 
     uint32 GetMinItems() const { return minItems; }
     void SetMinItems(uint32 value) { minItems = value; }
