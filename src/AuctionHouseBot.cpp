@@ -268,15 +268,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
        if (!botPlayer)
        {
             LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Available GUIDs: {}", _id, guid, fmt::join(config->GetBotGUIDs(), ", "));
-            // Additional logging to check if the player is loaded
-            if (ObjectAccessor::FindPlayer(guid))
-            {
-                LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
-            }
-            else
-            {
-                LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not loaded", _id, guid);
-            }
+            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
 
             continue;
         }
@@ -584,16 +576,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     if (!botPlayer)
     {
         LOG_ERROR("module", "AHBot [{}]: Could not find bot player with GUID {}. Available GUIDs: {}", _id, guid, fmt::join(config->GetBotGUIDs(), ", "));
-
-        // Additional logging to check if the player is loaded
-        if (ObjectAccessor::FindPlayer(guid))
-        {
-            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
-        }
-        else
-        {
-            LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is not loaded", _id, guid);
-        }
+        LOG_ERROR("module", "AHBot [{}]: Player with GUID {} is loaded but not found by ObjectAccessor::FindPlayer(botGuid)", _id, guid);
 
         continue;
     }
