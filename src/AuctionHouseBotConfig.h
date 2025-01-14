@@ -316,17 +316,17 @@ public:
     void InitializeBins();
     void Reset();
 
-    uint32 GetAHID() const;
-    uint32 GetAHFID() const;
+    uint32 GetAHID();
+    uint32 GetAHFID();
 
-    uint32 GetMinItems() const { return minItems; }
-    void SetMinItems(uint32 value) { minItems = value; }
+    uint32 GetMinItems();
+    void SetMinItems(uint32 value);
 
-    uint32 GetMaxItems() const { return maxItems; }
-    void SetMaxItems(uint32 value) { maxItems = value; }
+    uint32 GetMaxItems();
+    void SetMaxItems(uint32 value);
 
-    uint32 GetMaxStackSize() const { return maxStackSize; }
-    void SetMaxStackSize(uint32 value) { maxStackSize = value; }
+    uint32 GetMaxStackSize();
+    void SetMaxStackSize(uint32 value);
 
     void SetPercentages(uint32 greytg, uint32 whitetg, uint32 greentg, uint32 bluetg, uint32 purpletg, uint32 orangetg, uint32 yellowtg,
                         uint32 greyi, uint32 whitei, uint32 greeni, uint32 bluei, uint32 purplei, uint32 orangei, uint32 yellowi);
