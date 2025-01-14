@@ -3453,7 +3453,7 @@ void AHBConfig::LoadPriceOverrides()
 
 void AHBConfig::LoadBotGUIDs()
 {
-    std::string guidsStr = sConfigMgr->GetStringDefault("AuctionHouseBot.GUIDs", "0");
+    std::string guidsStr = sConfigMgr->GetString("AuctionHouseBot.GUIDs", "0");
     std::stringstream ss(guidsStr);
     std::string guid;
 
