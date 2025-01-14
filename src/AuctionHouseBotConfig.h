@@ -328,8 +328,6 @@ public:
     uint32 GetMaxStackSize() const { return maxStackSize; }
     void SetMaxStackSize(uint32 value) { maxStackSize = value; }
 
-    std::set<uint32> getCommaSeparatedIntegers(std::string text);
-
     void SetPercentages(uint32 greytg, uint32 whitetg, uint32 greentg, uint32 bluetg, uint32 purpletg, uint32 orangetg, uint32 yellowtg,
                         uint32 greyi, uint32 whitei, uint32 greeni, uint32 bluei, uint32 purplei, uint32 orangei, uint32 yellowi);
     uint32 GetPercentages(uint32 color);
