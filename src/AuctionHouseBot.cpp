@@ -249,7 +249,10 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
         // Attempt to load the player
         WorldSession* session = new WorldSession(guid, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, true, 0, true);
         botPlayer = new Player(session);
-        if (botPlayer->LoadFromDB(guid, nullptr, true))
+
+        // Create a CharacterDatabaseQueryHolder object
+        CharacterDatabaseQueryHolder holder;
+        if (botPlayer->LoadFromDB(guid, holder))
         {
             LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
         }
