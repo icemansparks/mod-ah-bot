@@ -66,6 +66,9 @@
 #         of the player you want to run as the auction bot.
 #    Default: 0 (Auction House Bot disabled)
 #
+#   AuctionHouseBot.GUIDs is a comma-separated list of GUIDs (in characters->characters table)
+#   of the players you want to run as the auction bots. Set to 0 to disable the bot.
+#
 #    AuctionHouseBot.ItemsPerCycle
 #        Number of Items to Add/Remove from the AH during mass operations
 #    Default 200
@@ -111,7 +114,7 @@ AuctionHouseBot.UseBuyPriceForBuyer = 0
 AuctionHouseBot.UseMarketPriceForSeller = 0
 AuctionHouseBot.MarketResetThreshold = 25
 AuctionHouseBot.Account = 0
-AuctionHouseBot.GUID = 0
+AuctionHouseBot.GUIDs = 0
 AuctionHouseBot.ItemsPerCycle = 200
 AuctionHouseBot.ConsiderOnlyBotAuctions = 0
 AuctionHouseBot.DuplicatesCount = 0

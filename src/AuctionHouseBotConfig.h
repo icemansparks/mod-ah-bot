@@ -23,6 +23,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "ObjectMgr.h"
 
@@ -155,6 +156,8 @@ private:
     void   InitializeFromSql(std::set<uint32> botsIds);
 
     std::set<uint32> getCommaSeparatedIntegers(std::string text);
+
+    std::vector<uint32> botGUIDs;
 
 public:
     //
@@ -366,6 +369,9 @@ public:
     uint64 GetItemPrice      (uint32 id);
 
     void LoadPriceOverrides();
+
+    void LoadBotGUIDs();
+    const std::vector<uint32>& GetBotGUIDs() const { return botGUIDs; }
 };
 
 //

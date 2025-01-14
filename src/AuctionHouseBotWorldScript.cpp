@@ -89,9 +89,9 @@ void AHBot_WorldScript::OnBeforeConfigLoad(bool reload)
         return;
     }
 
-    // 
+    //
     // Start the bots only if the operation is a reload, otherwise let the OnStartup do the job
-    // 
+    //
 
     if (reload)
     {
@@ -143,9 +143,9 @@ void AHBot_WorldScript::OnStartup()
 
 void AHBot_WorldScript::DeleteBots()
 {
-    // 
+    //
     // Save the old bots references.
-    // 
+    //
 
     std::set<AuctionHouseBot*> oldBots;
 
@@ -160,9 +160,9 @@ void AHBot_WorldScript::DeleteBots()
 
     gBots.clear();
 
-    // 
+    //
     // Free the resources used up by the old bots
-    // 
+    //
 
     for (AuctionHouseBot* bot: oldBots)
     {
@@ -175,17 +175,19 @@ void AHBot_WorldScript::PopulateBots()
 {
     uint32 account = sConfigMgr->GetOption<uint32>("AuctionHouseBot.Account", 0);
 
-    // 
     // Insert the bot in the list used for auction house iterations
-    // 
-
     gBots.clear();
 
-    for (uint32 id: gBotsId)
-    {
-        AuctionHouseBot* bot = new AuctionHouseBot(account, id);
-        bot->Initialize(gAllianceConfig, gHordeConfig, gNeutralConfig);
+    gAllianceConfig->LoadBotGUIDs();
+    gHordeConfig->LoadBotGUIDs();
+    gNeutralConfig->LoadBotGUIDs();
 
+    const std::vector<uint32>& botGUIDs = gAllianceConfig->GetBotGUIDs(); // Assuming all configs have the same GUIDs
+
+    for (uint32 guid : botGUIDs)
+    {
+        AuctionHouseBot* bot = new AuctionHouseBot(account, guid);
+        bot->Initialize(gAllianceConfig, gHordeConfig, gNeutralConfig);
         gBots.insert(bot);
     }
 }

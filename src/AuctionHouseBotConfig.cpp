@@ -3450,3 +3450,29 @@ void AHBConfig::LoadPriceOverrides()
 
     LOG_INFO("module", "AHBConfig: Loaded {} price overrides from mod_auctionhousebot_priceOverride", itemPriceOverrides.size());
 }
+
+void AHBConfig::LoadBotGUIDs()
+{
+    std::string guidsStr = sConfigMgr->GetStringDefault("AuctionHouseBot.GUIDs", "0");
+    std::stringstream ss(guidsStr);
+    std::string guid;
+
+    botGUIDs.clear();
+    while (std::getline(ss, guid, ','))
+    {
+        uint32 guidValue = static_cast<uint32>(std::stoi(guid));
+        if (guidValue != 0)
+        {
+            botGUIDs.push_back(guidValue);
+        }
+    }
+
+    if (botGUIDs.empty())
+    {
+        LOG_ERROR("module", "AHBConfig: No valid GUIDs found in AuctionHouseBot.GUIDs configuration. Bot will be inactive.");
+    }
+    else
+    {
+        LOG_INFO("module", "AHBConfig: Loaded {} bot GUIDs from configuration.", botGUIDs.size());
+    }
+}

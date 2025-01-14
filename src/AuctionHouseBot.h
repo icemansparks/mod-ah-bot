@@ -23,7 +23,6 @@
 #include "Common.h"
 #include "ObjectGuid.h"
 #include "AuctionHouseMgr.h"
-
 #include "AuctionHouseBotCommon.h"
 #include "AuctionHouseBotConfig.h"
 
@@ -47,23 +46,18 @@ private:
     time_t     _lastrun_h_sec;
     time_t     _lastrun_n_sec;
 
-    //
     // Main operations
-    //
-
     void Sell(Player *AHBplayer, AHBConfig *config);
     void Buy (Player *AHBplayer, AHBConfig *config, WorldSession *session);
 
-    //
     // Utilities
-    //
-
     inline uint32 minValue(uint32 a, uint32 b) { return a <= b ? a : b; };
 
     uint32 getNofAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse, ObjectGuid guid);
     uint32 getStackCount(AHBConfig* config, uint32 max);
     uint32 getElapsedTime(uint32 timeClass);
     uint32 getElement(std::set<uint32> set, int index, uint32 botId, uint32 maxDup, AuctionHouseObject* auctionHouse);
+    uint32 GetTotalAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse);
 
 public:
     AuctionHouseBot(uint32 account, uint32 id);
