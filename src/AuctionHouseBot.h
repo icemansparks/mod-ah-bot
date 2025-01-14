@@ -71,4 +71,6 @@ public:
     ObjectGuid::LowType GetAHBplayerGUID() { return _id; };
 };
 
+std::string JoinGUIDs(const std::vector<uint32>& guids);
+
 #endif // AUCTION_HOUSE_BOT_H

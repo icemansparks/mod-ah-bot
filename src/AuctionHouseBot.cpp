@@ -17,19 +17,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "ObjectMgr.h"
+#include "AuctionHouseBot.h"
+#include "AuctionHouseBotConfig.h"
 #include "AuctionHouseMgr.h"
-#include "Config.h"
-#include "Player.h"
+#include "Log.h"
+#include "ObjectMgr.h"
 #include "WorldSession.h"
 #include "GameTime.h"
 #include "DatabaseEnv.h"
+#include "Config.h"
+#include "Player.h"
 
 #include <algorithm>
 #include <random>
 #include <sstream>
 
-#include "AuctionHouseBot.h"
 #include "AuctionHouseBotCommon.h"
 
 using namespace std;
@@ -540,6 +542,13 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 minItems = config->GetMinItems();
     uint32 maxItems = config->GetMaxItems();
 
+    // Existing selling logic using botPlayer instead of AHBplayer
+    uint32 auctions = getNofAuctions(config, auctionHouse, botPlayer->GetGUID());
+    uint32 items = 0;
+
+    bool   aboveMin = false;
+    bool   aboveMax = false;
+
     if (maxItems == 0 )
     {
         if (config->DebugOutSeller)
@@ -551,6 +560,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
     if (auctions >= config->GetMinItems())
     {
+        aboveMin = true;
         if (config->DebugOutSeller)
         {
             LOG_ERROR("module", "AHBot [{}]: Auctions above minimum for bot {}", _id, guid);
@@ -560,16 +570,13 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
     if (totalAuctions >= maxItems)
     {
+        aboveMax = true;
         if (config->DebugOutSeller)
         {
             LOG_ERROR("module", "AHBot [{}]: Total auctions at or above maximum", _id);
         }
         return;
     }
-
-    // Existing selling logic using botPlayer instead of AHBplayer
-    uint32 auctions = getNofAuctions(config, auctionHouse, botPlayer->GetGUID());
-    uint32 items = 0;
 
     if ((maxItems - auctions) >= config->ItemsPerCycle)
     {
