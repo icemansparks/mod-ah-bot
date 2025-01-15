@@ -250,7 +250,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         if (!auction)
         {
-            LOG_ERROR("module", "AHBot [{}]: Could not find auction with ID {}", _id, *it);
+            LOG_ERROR("module", "AHBot [{}]: Could not find auction with ID {} in auction house {}", _id, *it, auctionHouse->GetHouseId());
             continue;
         }
 
@@ -276,6 +276,11 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         // Get the item prototype
         ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(auction->item_template);
+        if (!prototype)
+        {
+            LOG_ERROR("module", "AHBot [{}]: item {} has no prototype", _id, auction->item_guid.ToString());
+            continue;
+        }
 
         // Calculate the bid and buyout prices
         uint32 currentprice = auction->bid ? auction->bid : auction->startbid;
