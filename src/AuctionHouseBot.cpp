@@ -204,6 +204,8 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     LOG_INFO("module", "AHBot [{}]: Querying auction house {} for items not owned by bots", _id, auctionHouseID);
     QueryResult result = CharacterDatabase.Query("SELECT id FROM auctionhouse WHERE itemowner NOT IN ({}) AND buyguid NOT IN ({}) AND houseid = {}", botGUIDsStr, botGUIDsStr, auctionHouseID);
 
+    LOG_INFO("module", "AHBot [{}]: Querying auction house {} for items not owned by bots", _id, auctionHouseID);
+
     if (!result || result->GetRowCount() == 0)
     {
         LOG_ERROR("module", "AHBot [{}]: No items found to buy in auction house {}. Bot GUIDs: {}", _id, auctionHouseID, botGUIDsStr);
@@ -295,6 +297,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 if (currentprice < prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
                 {
                     bidMax = prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
+                    LOG_INFO("module", "AHBot [{}]: Bid Max: {}", _id, bidMax);
                 }
             }
             else
@@ -314,6 +317,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 if (currentprice < prototype->BuyPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
                 {
                     bidMax = prototype->BuyPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
+                    LOG_INFO("module", "AHBot [{}]: bidMax = {}", _id, bidMax);
                 }
             }
             else
@@ -352,6 +356,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         if ((currentprice + auction->GetAuctionOutBid()) > bidprice)
         {
             bidprice = currentprice + auction->GetAuctionOutBid();
+            LOG_INFO("module", "AHBot [{}]: Bid price too low, corrected to minimum", _id);
         }
 
         // Print out debug info
