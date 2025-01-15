@@ -2148,8 +2148,8 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
     // Load min and max items
     //
 
-    SetMinItems(WorldDatabase.Query("SELECT minitems FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
-    SetMaxItems(WorldDatabase.Query("SELECT maxitems FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
+    //SetMinItems(WorldDatabase.Query("SELECT minitems FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
+    //SetMaxItems(WorldDatabase.Query("SELECT maxitems FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
 
     //
     // Load percentages
