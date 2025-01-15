@@ -245,9 +245,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         AuctionEntry* auction = auctionHouse->GetAuction(*it);
 
-        // Prevent to bid again on the same auction
-        possibleBids.erase(randBid);
-
         if (!auction)
         {
             LOG_ERROR("module", "AHBot [{}]: Could not find auction with ID {} in auction house {}", _id, *it, auctionHouse->GetHouseId());
@@ -485,6 +482,9 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 LOG_INFO("module", "AHBot [{}]: New bid, id={}, ah={}, item={}, start={}, current={}, buyout={}", _id, prototype->ItemId, auction->GetHouseId(), auction->item_template, auction->startbid, currentprice, auction->buyout);
             }
         }
+
+        // Prevent to bid again on the same auction
+        possibleBids.erase(it);
     }
 
     LOG_INFO("module", "AHBot [{}]: Completed buying process", _id);
