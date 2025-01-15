@@ -20,66 +20,79 @@ AHBot_WorldScript::AHBot_WorldScript() : WorldScript("AHBot_WorldScript")
 
 void AHBot_WorldScript::OnBeforeConfigLoad(bool reload)
 {
-    //
     // Retrieve how many bots shall be operating on the auction market
-    //
-
-    bool   debug   = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.DEBUG"  , false);
+    bool debug = sConfigMgr->GetOption<bool>("AuctionHouseBot.DEBUG", false);
     uint32 account = sConfigMgr->GetOption<uint32>("AuctionHouseBot.Account", 0);
-    uint32 player  = sConfigMgr->GetOption<uint32>("AuctionHouseBot.GUID"   , 0);
 
-    //
-    // All the bots bound to the provided account will be used for auctioning, if GUID is zero.
-    // Otherwise only the specified character is used.
-    //
-
-    if (account == 0 && player == 0)
+    // Retrieve list of GUIDs from the configuration
+    std::string guidsStr = sConfigMgr->GetOption<std::string>("AuctionHouseBot.GUIDs", "");
+    std::vector<uint32> botGUIDs;
+    std::stringstream ss(guidsStr);
+    std::string guid;
+    while (std::getline(ss, guid, ','))
     {
-        LOG_ERROR("server.loading", "AHBot: Account id and player id missing from configuration; is that the right file?");
+        botGUIDs.push_back(std::stoul(guid));
+    }
+
+    // All the bots bound to the provided account will be used for auctioning, if GUIDs list is empty.
+    if (account == 0 && botGUIDs.empty())
+    {
+        LOG_ERROR("server.loading", "AHBot: Account id and GUIDs list missing from configuration; is that the right file?");
         return;
     }
     else
     {
-        QueryResult result = CharacterDatabase.Query("SELECT guid FROM characters WHERE account = {}", account);
+        gBotsId.clear();
 
-        if (result)
+        if (!botGUIDs.empty())
         {
-            gBotsId.clear();
-
-            do
+            for (uint32 botId : botGUIDs)
             {
-                Field* fields = result->Fetch();
-                uint32 botId  = fields[0].Get<uint32>();
+                QueryResult result = CharacterDatabase.Query("SELECT guid FROM characters WHERE guid = {} AND account = {}", botId, account);
 
-                if (player == 0)
+                if (result)
                 {
+                    Field* fields = result->Fetch();
+                    uint32 queriedBotId = fields[0].Get<uint32>();
+
+                    if (debug)
+                    {
+                        LOG_INFO("server.loading", "AHBot: New bot to start, account={} character={}", account, queriedBotId);
+                    }
+
+                    gBotsId.insert(queriedBotId);
+                }
+                else
+                {
+                    LOG_ERROR("server.loading", "AHBot: Could not query the database for character with GUID {} and account {}", botId, account);
+                }
+            }
+        }
+        else
+        {
+            QueryResult result = CharacterDatabase.Query("SELECT guid FROM characters WHERE account = {}", account);
+
+            if (result)
+            {
+                do
+                {
+                    Field* fields = result->Fetch();
+                    uint32 botId = fields[0].Get<uint32>();
+
                     if (debug)
                     {
                         LOG_INFO("server.loading", "AHBot: New bot to start, account={} character={}", account, botId);
                     }
 
                     gBotsId.insert(botId);
-                }
-                else
-                {
-                    if (player == botId)
-                    {
-                        if (debug)
-                        {
-                            LOG_INFO("server.loading", "AHBot: Starting only one bot, account={} character={}", account, botId);
-                        }
 
-                        gBotsId.insert(botId);
-                        break;
-                    }
-                }
-
-            } while (result->NextRow());
-        }
-        else
-        {
-            LOG_ERROR("server.loading", "AHBot: Could not query the database for characters of account {}", account);
-            return;
+                } while (result->NextRow());
+            }
+            else
+            {
+                LOG_ERROR("server.loading", "AHBot: Could not query the database for characters of account {}", account);
+                return;
+            }
         }
     }
 
@@ -89,10 +102,7 @@ void AHBot_WorldScript::OnBeforeConfigLoad(bool reload)
         return;
     }
 
-    //
     // Start the bots only if the operation is a reload, otherwise let the OnStartup do the job
-    //
-
     if (reload)
     {
         if (debug)
@@ -100,24 +110,15 @@ void AHBot_WorldScript::OnBeforeConfigLoad(bool reload)
             LOG_INFO("module", "AHBot: Reloading the bots");
         }
 
-        //
         // Clear the bots array; this way they wont be used anymore during the initialization stage.
-        //
-
         DeleteBots();
 
-        //
         // Reload the configuration for the auction houses
-        //
-
         gAllianceConfig->Initialize(gBotsId);
-        gHordeConfig->Initialize   (gBotsId);
-        gNeutralConfig->Initialize (gBotsId);
+        gHordeConfig->Initialize(gBotsId);
+        gNeutralConfig->Initialize(gBotsId);
 
-        //
         // Start again the bots
-        //
-
         PopulateBots();
     }
 }

@@ -56,21 +56,6 @@ AuctionHouseBot::~AuctionHouseBot()
     // Nothing
 }
 
-// Function to get a random GUID from the list
-uint32 GetRandomGUID(const std::vector<uint32>& guids)
-{
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, guids.size() - 1);
-    uint32 selectedGUID = guids[dis(gen)];
-
-    // Log the selected GUID and the list of available GUIDs
-    LOG_INFO("module", "Selected GUID: {}", selectedGUID);
-    LOG_INFO("module", "Available GUIDs: {}", fmt::join(guids, ", "));
-
-    return selectedGUID;
-}
-
 uint32 AuctionHouseBot::getElement(std::set<uint32> set, int index, uint32 botId, uint32 maxDup, AuctionHouseObject* auctionHouse)
 {
     std::set<uint32>::iterator it = set.begin();
@@ -205,65 +190,6 @@ uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* 
     return totalAuctions;
 }
 
-Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
-{
-    ObjectGuid botGuid = ObjectGuid::Create<HighGuid::Player>(guid);
-
-    // Log the GUID and botGuid before attempting to find the player
-    LOG_INFO("module", "Attempting to find bot player with GUID: {} (botGuid: {})", guid, botGuid.ToString());
-
-    // Query the database for the account name
-    QueryResult result = CharacterDatabase.Query("SELECT account FROM characters WHERE guid = {}", guid);
-    if (!result)
-    {
-        LOG_ERROR("module", "AHBot [{}]: Could not find account for player with GUID {}", _id, guid);
-        return nullptr;
-    }
-
-    Field* fields = result->Fetch();
-    uint32 accountId = fields[0].Get<uint32>();
-
-    result = LoginDatabase.Query("SELECT username FROM account WHERE id = {}", accountId);
-    if (!result)
-    {
-        LOG_ERROR("module", "AHBot [{}]: Could not find account name for account ID {}", _id, accountId);
-        return nullptr;
-    }
-
-    fields = result->Fetch();
-    std::string accountName = fields[0].Get<std::string>();
-
-    // Attempt to load the player
-    WorldSession* session = new WorldSession(accountId, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, true, 0, true);
-    Player* botPlayer = new Player(session);
-
-    // Create and populate a CharacterDatabaseQueryHolder object
-    auto holder = std::make_shared<CharacterDatabaseQueryHolder>(botGuid);
-
-    // Populate the query holder with necessary queries
-    if (!holder->Initialize())
-    {
-        LOG_ERROR("module", "AHBot [{}]: Failed to initialize query holder for player with GUID {}", _id, guid);
-        delete botPlayer;
-        delete session;
-        return nullptr;
-    }
-
-    if (botPlayer->LoadFromDB(botGuid, *holder))
-    {
-        LOG_INFO("module", "AHBot [{}]: Successfully loaded player with GUID {}", _id, guid);
-    }
-    else
-    {
-        LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
-        delete botPlayer;
-        delete session;
-        return nullptr;
-    }
-
-    return botPlayer;
-}
-
 // =============================================================================
 // This routine performs the bidding operations for the bot
 // =============================================================================
@@ -281,15 +207,9 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     std::string botGUIDsStr = JoinGUIDs(config->GetBotGUIDs());
     QueryResult result = CharacterDatabase.Query("SELECT id FROM auctionhouse WHERE itemowner NOT IN ({}) AND buyguid NOT IN ({})", botGUIDsStr, botGUIDsStr);
 
-    if (!result)
+    if (!result || result->GetRowCount() == 0)
     {
         LOG_ERROR("module", "AHBot [{}]: No items found to buy", _id);
-        return;
-    }
-
-    if (result->GetRowCount() == 0)
-    {
-        LOG_INFO("module", "AHBot [{}]: No items to buy", _id);
         return;
     }
 
@@ -317,14 +237,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     // Perform the operation for a maximum amount of bids attempts configured
     for (uint32 count = 1; count <= config->GetBidsPerInterval(); ++count)
     {
-        // Choose a random GUID for this iteration
-        uint32 guid = GetRandomGUID(config->GetBotGUIDs());
-        Player* botPlayer = FindOrLoadBotPlayer(guid, config);
-        if (!botPlayer)
-        {
-            return;
-        }
-
         // Choose a random auction from possible auctions
         uint32 randBid = urand(0, possibleBids.size() - 1);
 
@@ -339,14 +251,14 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         if (!auction)
         {
             LOG_ERROR("module", "AHBot [{}]: Could not find auction with ID {}", _id, *it);
-            return;
+            continue;
         }
 
         // Prevent from buying items from the other bots
         if (gBotsId.find(auction->owner.GetCounter()) != gBotsId.end())
         {
             LOG_INFO("module", "AHBot [{}]: Skipping auction owned by another bot", _id);
-            return;
+            continue;
         }
 
         // Get the item information
@@ -359,7 +271,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 LOG_ERROR("module", "AHBot [{}]: item {} doesn't exist, perhaps bought already?", _id, auction->item_guid.ToString());
             }
 
-            return;
+            continue;
         }
 
         // Get the item prototype
@@ -387,7 +299,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                     LOG_ERROR("module", "AHBot [{}]: Quality {} not Supported", _id, prototype->Quality);
                 }
 
-                return;
+                continue;
             }
         }
         else
@@ -406,7 +318,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                     LOG_ERROR("module", "AHBot [{}]: Quality {} not Supported", _id, prototype->Quality);
                 }
 
-                return;
+                continue;
             }
         }
 
@@ -430,7 +342,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         if (bidMax == 0)
         {
-            return;
+            continue;
         }
 
         //
@@ -617,16 +529,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
-    // Choose a random GUID for this iteration
-    uint32 guid = GetRandomGUID(config->GetBotGUIDs());
-    Player* botPlayer = FindOrLoadBotPlayer(guid, config);
-    if (!botPlayer)
-    {
-        return;
-    }
-
-    // Existing selling logic using botPlayer instead of AHBplayer
-    uint32 auctions = getNofAuctions(config, auctionHouse, botPlayer->GetGUID());
+    uint32 auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
     uint32 items = 0;
     bool aboveMin = false;
     bool aboveMax = false;
