@@ -234,8 +234,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         return;
     }
 
-    uint32 guid = AHBplayer->GetGUID();
-
     // Perform the operation for a maximum amount of bids attempts configured
     for (uint32 count = 1; count <= config->GetBidsPerInterval(); ++count)
     {
@@ -404,7 +402,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             // Perform a new bid on the auction
             if (auction->bidder)
             {
-                if (auction->bidder != guid
+                if (auction->bidder != AHBplayer->GetGUID())
                 {
                     //
                     // Mail to last bidder and return their money
@@ -417,7 +415,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 }
             }
 
-            auction->bidder = guid;
+            auction->bidder = AHBplayer->GetGUID();
             auction->bid    = bidprice;
 
             //
@@ -436,7 +434,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
             auto trans = CharacterDatabase.BeginTransaction();
 
-            if ((auction->bidder) && (guid != auction->bidder))
+            if ((auction->bidder) && (AHBplayer->GetGUID() != auction->bidder))
             {
                 //
                 // Send the mail to the last bidder
@@ -445,7 +443,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 sAuctionMgr->SendAuctionOutbiddedMail(auction, auction->buyout, session->GetPlayer(), trans);
             }
 
-            auction->bidder = guid;
+            auction->bidder = AHBplayer->GetGUID();
             auction->bid    = auction->buyout;
 
             //
