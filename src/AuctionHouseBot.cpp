@@ -417,7 +417,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             LOG_INFO("module", "AHBot [{}]: Bid Price: {}"        , _id, bidprice);
             LOG_INFO("module", "AHBot [{}]: Item GUID: {}"        , _id, auction->item_guid.ToString());
             LOG_INFO("module", "AHBot [{}]: Item Template: {}"    , _id, auction->item_template);
-            LOG_INFO("module", "AHBot [{}]: Item Info:"           , _id, auction->item_info);
+            LOG_INFO("module", "AHBot [{}]: Item Info:"           , _id);
             LOG_INFO("module", "AHBot [{}]: Item ID: {}"          , _id, prototype->ItemId);
             LOG_INFO("module", "AHBot [{}]: Buy Price: {}"        , _id, prototype->BuyPrice);
             LOG_INFO("module", "AHBot [{}]: Sell Price: {}"       , _id, prototype->SellPrice);
