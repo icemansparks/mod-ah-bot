@@ -236,7 +236,7 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
     WorldSession* session = new WorldSession(accountId, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, true, 0, true);
     Player* botPlayer = new Player(session);
 
-    / Create and populate a CharacterDatabaseQueryHolder object
+    // Create and populate a CharacterDatabaseQueryHolder object
     CharacterDatabaseQueryHolder* holder = new CharacterDatabaseQueryHolder(botGuid);
     if (!holder->Initialize())
     {
