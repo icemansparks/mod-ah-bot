@@ -2227,8 +2227,8 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
     {
         LOG_INFO("module", "Settings for Auctionhouse {}", GetAHID());
 
-        LOG_INFO("module", "minItems                = {}", GetMinItems());
-        LOG_INFO("module", "maxItems                = {}", GetMaxItems());
+        //LOG_INFO("module", "minItems                = {}", GetMinItems());
+        //LOG_INFO("module", "maxItems                = {}", GetMaxItems());
 
         LOG_INFO("module", "percentGreyTradeGoods   = {}", GetPercentages(AHB_GREY_TG));
         LOG_INFO("module", "percentWhiteTradeGoods  = {}", GetPercentages(AHB_WHITE_TG));
