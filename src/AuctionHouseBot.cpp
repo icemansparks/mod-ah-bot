@@ -548,7 +548,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         aboveMin = true;
         if (config->DebugOutSeller)
         {
-            LOG_ERROR("module", "AHBot [{}]: Auctions above minimum for bot {}", _id, AHBplayer->GetGUID());
+            std::string guidStr = AHBplayer->GetGUID().ToString();
+            LOG_ERROR("module", "AHBot [{}]: Auctions above minimum for bot {}", _id, guidStr);
         }
         return;
     }
