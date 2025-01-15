@@ -234,7 +234,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         return;
     }
 
-    uint32 guid = AHBplayer->GetGUID().GetCounter();
+    uint32 guid = AHBplayer->GetGUID();
 
     // Perform the operation for a maximum amount of bids attempts configured
     for (uint32 count = 1; count <= config->GetBidsPerInterval(); ++count)
@@ -404,7 +404,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             // Perform a new bid on the auction
             if (auction->bidder)
             {
-                if (auction->bidder != guid)
+                if (auction->bidder != guid
                 {
                     //
                     // Mail to last bidder and return their money
@@ -531,7 +531,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
-    uint32 guid = AHBplayer->GetGUID().GetCounter();
+    uint32 guid = AHBplayer->GetGUID();
     uint32 auctions = getNofAuctions(config, auctionHouse, guid);
     uint32 items = 0;
     bool aboveMin = false;
