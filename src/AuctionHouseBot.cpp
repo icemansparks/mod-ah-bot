@@ -151,20 +151,14 @@ uint32 AuctionHouseBot::getElapsedTime(uint32 timeClass)
 
 uint32 AuctionHouseBot::getNofAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse, ObjectGuid guid)
 {
-    //
     // All the auctions
-    //
-
     if (!config->ConsiderOnlyBotAuctions)
     {
         return auctionHouse->Getcount();
     }
 
-    //
     // Just the one handled by the bot
-    //
-
-    uint32 count = 0;
+    uint32 nofAuctions = 0;
 
     for (AuctionHouseObject::AuctionEntryMap::const_iterator itr = auctionHouse->GetAuctionsBegin(); itr != auctionHouse->GetAuctionsEnd(); ++itr)
     {
@@ -172,12 +166,11 @@ uint32 AuctionHouseBot::getNofAuctions(AHBConfig* config, AuctionHouseObject* au
 
         if (guid == Aentry->owner)
         {
-            count++;
-            break;
+            nofAuctions++;
         }
     }
 
-    return count;
+    return nofAuctions;
 }
 
 uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse)
@@ -526,6 +519,11 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 minItems = config->GetMinItems();
     uint32 maxItems = config->GetMaxItems();
 
+     // Divide maxItems by the number of bots to get the max items per bot
+    uint32 numBots = config->GetBotGUIDs().size();
+    uint32 maxAuctionsPerBot = (maxItems + numBots - 1) / numBots;
+    uint32 minAuctionsPerBot = (minItems + numBots - 1) / numBots;
+
     if (maxItems == 0 || totalAuctions >= maxItems)
     {
         if (config->DebugOutSeller)
@@ -537,37 +535,38 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
     uint32 auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
     uint32 items = 0;
+
     bool aboveMin = false;
     bool aboveMax = false;
 
-    if (maxItems == 0 || totalAuctions >= maxItems)
+    if (auctions >= maxAuctionsPerBot)
     {
-        if (config->DebugOutSeller)
-        {
-            LOG_ERROR("module", "AHBot [{}]: Total auctions at or above maximum", _id);
-        }
-        return;
-    }
-
-    if (auctions >= minItems)
-    {
-        aboveMin = true;
+        aboveMax = true;
         if (config->DebugOutSeller)
         {
             std::string guidStr = AHBplayer->GetGUID().ToString();
-            LOG_ERROR("module", "AHBot [{}]: Auctions above minimum for bot {}", _id, guidStr);
+            LOG_ERROR("module", "AHBot [{}]: Auctions above maximum for bot {}", _id, guidStr);
         }
         return;
     }
 
     // Determine the number of items to list
-    if ((maxItems - totalAuctions) >= config->ItemsPerCycle)
+     if (totalAuctions < minItems)
     {
-        items = config->ItemsPerCycle;
+        // Add new auctions quickly until totalAuctions reach minItems
+        uint32 maxItemsToList = minAuctionsPerBot - auctions;
+        items = urand(minAuctionsPerBot, maxItemsToList);
     }
     else
     {
-        items = (maxItems - totalAuctions);
+        // Gradually increase the number of auctions with ItemsPerCycle
+        uint32 maxItemsToList = maxAuctionsPerBot - auctions;
+        items = config->ItemsPerCycle;
+
+        if (items > maxItemsToList)
+        {
+            items = maxItemsToList;
+        }
     }
 
     // Use the max stack size configuration value
@@ -938,6 +937,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         if (config->TraceSeller)
         {
+            //todo: add item name, quality and stack size as well as totalAuctions
             LOG_INFO("module", "AHBot [{}]: New stack ah={}, id={}, stack={}, bid={}, buyout={}", _id, config->GetAHID(), itemID, stackCount, auctionEntry->startbid, auctionEntry->buyout);
         }
     }
