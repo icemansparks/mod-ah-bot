@@ -35,6 +35,7 @@
 #include "AuctionHouseBotCommon.h"
 
 using namespace std;
+using CharacterDatabaseQueryHolder = SQLQueryHolder<CharacterDatabaseConnection>;
 
 AuctionHouseBot::AuctionHouseBot(uint32 account, uint32 id)
 {
