@@ -238,13 +238,12 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
     Player* botPlayer = new Player(session);
 
     // Create and populate a CharacterDatabaseQueryHolder object
-    CharacterDatabaseQueryHolder* holder = new CharacterDatabaseQueryHolder(botGuid);
+    auto holder = std::make_shared<CharacterDatabaseQueryHolder>(botGuid);
     if (!holder->Initialize())
     {
         LOG_ERROR("module", "AHBot [{}]: Failed to initialize query holder for player with GUID {}", _id, guid);
         delete botPlayer;
         delete session;
-        delete holder;
         return nullptr;
     }
 
@@ -257,11 +256,9 @@ Player* AuctionHouseBot::FindOrLoadBotPlayer(uint32 guid, AHBConfig* config)
         LOG_ERROR("module", "AHBot [{}]: Failed to load player with GUID {}", _id, guid);
         delete botPlayer;
         delete session;
-        delete holder;
         return nullptr;
     }
 
-    delete holder;
     return botPlayer;
 }
 
