@@ -303,10 +303,12 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 if (currentprice < prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
                 {
                     bidMax = prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
+                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, prototype->SellPrice,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
                     LOG_INFO("module", "AHBot [{}]: Bid Max: {}", _id, bidMax);
                 }
                 else
                 {
+                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, prototype->SellPrice,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
                     LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
                 }
             }
