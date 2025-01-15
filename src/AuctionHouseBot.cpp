@@ -234,6 +234,8 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         return;
     }
 
+    guid = AHBplayer->GetGUID().GetCounter();
+
     // Perform the operation for a maximum amount of bids attempts configured
     for (uint32 count = 1; count <= config->GetBidsPerInterval(); ++count)
     {
@@ -402,7 +404,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             // Perform a new bid on the auction
             if (auction->bidder)
             {
-                if (auction->bidder != AHBplayer->GetGUID())
+                if (auction->bidder != guid)
                 {
                     //
                     // Mail to last bidder and return their money
@@ -415,7 +417,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 }
             }
 
-            auction->bidder = AHBplayer->GetGUID();
+            auction->bidder = guid;
             auction->bid    = bidprice;
 
             //
@@ -434,7 +436,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
             auto trans = CharacterDatabase.BeginTransaction();
 
-            if ((auction->bidder) && (AHBplayer->GetGUID() != auction->bidder))
+            if ((auction->bidder) && (guid != auction->bidder))
             {
                 //
                 // Send the mail to the last bidder
@@ -443,7 +445,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 sAuctionMgr->SendAuctionOutbiddedMail(auction, auction->buyout, session->GetPlayer(), trans);
             }
 
-            auction->bidder = AHBplayer->GetGUID();
+            auction->bidder = guid;
             auction->bid    = auction->buyout;
 
             //
@@ -529,16 +531,17 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
-    uint32 auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
+    guid = AHBplayer->GetGUID().GetCounter();
+    uint32 auctions = getNofAuctions(config, auctionHouse, guid);
     uint32 items = 0;
     bool aboveMin = false;
     bool aboveMax = false;
 
-    if (maxItems == 0)
+    if (maxItems == 0 || totalAuctions >= maxItems)
     {
         if (config->DebugOutSeller)
         {
-            LOG_ERROR("module", "AHBot [{}]: Auctions config is set to 0, no auctions will be created.", _id);
+            LOG_ERROR("module", "AHBot [{}]: Total auctions at or above maximum", _id);
         }
         return;
     }
@@ -549,16 +552,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         if (config->DebugOutSeller)
         {
             LOG_ERROR("module", "AHBot [{}]: Auctions above minimum for bot {}", _id, guid);
-        }
-        return;
-    }
-
-    if (totalAuctions >= maxItems)
-    {
-        aboveMax = true;
-        if (config->DebugOutSeller)
-        {
-            LOG_ERROR("module", "AHBot [{}]: Total auctions at or above maximum", _id);
         }
         return;
     }
