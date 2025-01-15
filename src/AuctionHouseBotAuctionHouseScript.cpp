@@ -80,9 +80,9 @@ void AHBot_AuctionHouseScript::OnBeforeAuctionHouseMgrSendAuctionOutbiddedMail(
 
 void AHBot_AuctionHouseScript::OnAuctionAdd(AuctionHouseObject* /*ah*/, AuctionEntry* auction)
 {
-    // 
+    //
     // The the configuration for the auction house
-    // 
+    //
 
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromHouse(auction->GetHouseId());
     AHBConfig*               config  = gNeutralConfig;
@@ -99,9 +99,9 @@ void AHBot_AuctionHouseScript::OnAuctionAdd(AuctionHouseObject* /*ah*/, AuctionE
         }
     }
 
-    // 
+    //
     // Consider only those auctions handled by the bots
-    // 
+    //
 
     if (config->ConsiderOnlyBotAuctions)
     {
@@ -143,9 +143,9 @@ void AHBot_AuctionHouseScript::OnAuctionAdd(AuctionHouseObject* /*ah*/, AuctionE
 
 void AHBot_AuctionHouseScript::OnAuctionRemove(AuctionHouseObject* /*ah*/, AuctionEntry* auction)
 {
-    // 
+    //
     // Get the configuration for the auction house
-    // 
+    //
 
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromHouse(auction->GetHouseId());
     AHBConfig*               config  = gNeutralConfig;
@@ -162,9 +162,9 @@ void AHBot_AuctionHouseScript::OnAuctionRemove(AuctionHouseObject* /*ah*/, Aucti
         }
     }
 
-    // 
+    //
     // Consider only those auctions handled by the bots
-    // 
+    //
 
     if (config->ConsiderOnlyBotAuctions)
     {
@@ -206,9 +206,9 @@ void AHBot_AuctionHouseScript::OnAuctionRemove(AuctionHouseObject* /*ah*/, Aucti
 
 void AHBot_AuctionHouseScript::OnAuctionSuccessful(AuctionHouseObject* /*ah*/, AuctionEntry* auction)
 {
-    // 
+    //
     // Get the configuration for the auction house
-    // 
+    //
 
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromHouse(auction->GetHouseId());
     AHBConfig*               config  = gNeutralConfig;
@@ -225,19 +225,19 @@ void AHBot_AuctionHouseScript::OnAuctionSuccessful(AuctionHouseObject* /*ah*/, A
         }
     }
 
-    // 
+    //
     // If the auction has been won, it means that it has been accepted by the market.
     // Use the buyout as a reference since the price for the bid is downgraded during selling.
-    // 
+    //
 
     config->UpdateItemStats(auction->item_template, auction->itemCount, auction->buyout);
 }
 
 void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, AuctionEntry* auction)
 {
-    // 
+    //
     // Get the configuration for the auction house
-    // 
+    //
 
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromHouse(auction->GetHouseId());
     AHBConfig*               config  = gNeutralConfig;
@@ -254,20 +254,17 @@ void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, Aucti
         }
     }
 
-    // 
+    //
     // If the auction expired, then it means that the bid was unwanted by the market.
     // Bid price is usually less or equal to the buyout, so this likely will bring the price down.
-    // 
+    //
 
     config->UpdateItemStats(auction->item_template, auction->itemCount, auction->bid);
 }
 
 void AHBot_AuctionHouseScript::OnBeforeAuctionHouseMgrUpdate()
 {
-    //
     // For every registered bot, perform an update
-    //
-
     for (AuctionHouseBot* bot: gBots)
     {
         bot->Update();

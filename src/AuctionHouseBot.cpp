@@ -957,19 +957,13 @@ void AuctionHouseBot::Update()
 {
     time_t _newrun = time(NULL);
 
-    //
     // If no configuration is associated, then stop here
-    //
-
     if (!_allianceConfig && !_hordeConfig && !_neutralConfig)
     {
         return;
     }
 
-    //
     // Preprare for operation
-    //
-
     std::string accountName = "AuctionHouseBot" + std::to_string(_account);
 
     WorldSession _session(_account, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, false, 0);
@@ -979,16 +973,10 @@ void AuctionHouseBot::Update()
 
     ObjectAccessor::AddObject(&_AHBplayer);
 
-    //
     // Perform update for the factions markets
-    //
-
     if (!sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_AUCTION))
     {
-        //
         // Alliance
-        //
-
         if (_allianceConfig)
         {
             Sell(&_AHBplayer, _allianceConfig);
@@ -1000,10 +988,7 @@ void AuctionHouseBot::Update()
             }
         }
 
-        //
         // Horde
-        //
-
         if (_hordeConfig)
         {
             Sell(&_AHBplayer, _hordeConfig);
@@ -1016,11 +1001,14 @@ void AuctionHouseBot::Update()
         }
 
     }
+    else
+    {
+        //TODO: Implement two-side interaction
+        // Handle the case where two-side interaction is allowed
+        // Similar logic for alliance, horde, and neutral configurations
+    }
 
-    //
     // Neutral
-    //
-
     if (_neutralConfig)
     {
         Sell(&_AHBplayer, _neutralConfig);
