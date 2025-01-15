@@ -743,7 +743,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             return;
         }
 
-        Item* item = Item::CreateItem(itemID, 1, botPlayer);
+        Item* item = Item::CreateItem(itemID, 1, AHBplayer);
 
         if (item == NULL)
         {
@@ -758,7 +758,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         }
 
         // Start interacting with the item by adding a random property
-        item->AddToUpdateQueueOf(botPlayer);
+        item->AddToUpdateQueueOf(AHBplayer);
 
         uint32 randomPropertyId = Item::GenerateItemRandomPropertyId(itemID);
 
@@ -776,7 +776,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
                 LOG_ERROR("module", "AHBot [{}]: Quality {} TOO HIGH for item {}", _id, prototype->Quality, itemID);
             }
 
-            item->RemoveFromUpdateQueueOf(botPlayer);
+            item->RemoveFromUpdateQueueOf(AHBplayer);
             return;
         }
 
@@ -848,7 +848,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         auctionEntry->item_guid         = item->GetGUID();
         auctionEntry->item_template     = item->GetEntry();
         auctionEntry->itemCount         = item->GetCount();
-        auctionEntry->owner             = botPlayer->GetGUID();
+        auctionEntry->owner             = AHBplayer->GetGUID();
         auctionEntry->startbid          = bidPrice * stackCount;
         auctionEntry->buyout            = buyoutPrice * stackCount;
         auctionEntry->bid               = 0;
@@ -857,7 +857,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         auctionEntry->auctionHouseEntry = ahEntry;
 
         item->SaveToDB(trans);
-        item->RemoveFromUpdateQueueOf(botPlayer);
+        item->RemoveFromUpdateQueueOf(AHBplayer);
         sAuctionMgr->AddAItem(item);
         auctionHouse->AddAuction(auctionEntry);
         auctionEntry->SaveToDB(trans);
