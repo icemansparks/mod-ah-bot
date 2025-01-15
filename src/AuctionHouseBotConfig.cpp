@@ -3460,6 +3460,17 @@ void AHBConfig::LoadPriceOverrides()
     LOG_INFO("module", "AHBConfig: Loaded {} price overrides from mod_auctionhousebot_priceOverride", itemPriceOverrides.size());
 }
 
+std::tuple<uint64, uint64> AHBConfig::GetPriceOverrideForItem(uint32 itemId) const
+{
+    auto it = itemPriceOverrides.find(itemId);
+    if (it != itemPriceOverrides.end())
+    {
+        return it->second;
+    }
+    // Default value if no override is found
+    return std::make_tuple(0, 0);
+}
+
 void AHBConfig::LoadBotGUIDs()
 {
     std::string guidsStr = sConfigMgr->GetOption<std::string>("AuctionHouseBot.GUIDs", "0");

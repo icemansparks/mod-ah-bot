@@ -298,6 +298,9 @@ public:
     //
 
     std::unordered_map<uint32, std::tuple<uint64, uint64>> itemPriceOverrides;
+    float priceOverride;
+    float GetPriceOverride() const { return priceOverride; }
+    std::tuple<uint64, uint64> GetPriceOverrideForItem(uint32 itemId) const;
 
     //
     // Constructors/destructors

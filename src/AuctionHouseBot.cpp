@@ -204,8 +204,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     LOG_INFO("module", "AHBot [{}]: Querying auction house {} for items not owned by bots", _id, auctionHouseID);
     QueryResult result = CharacterDatabase.Query("SELECT id FROM auctionhouse WHERE itemowner NOT IN ({}) AND buyguid NOT IN ({}) AND houseid = {}", botGUIDsStr, botGUIDsStr, auctionHouseID);
 
-    LOG_INFO("module", "AHBot [{}]: Querying auction house {} for items not owned by bots", _id, auctionHouseID);
-
     if (!result || result->GetRowCount() == 0)
     {
         LOG_ERROR("module", "AHBot [{}]: No items found to buy in auction house {}. Bot GUIDs: {}", _id, auctionHouseID, botGUIDsStr);
@@ -285,6 +283,11 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             continue;
         }
 
+        // Get price overrides
+        auto [avgPrice, minPrice] = config->GetPriceOverrideForItem(prototype->ItemId);
+        uint64 SellPriceToUse = avgPrice > 0 ? avgPrice : prototype->SellPrice;
+        uint64 BuyPriceToUse = minPrice > 0 ? avgPrice : prototype->SellPrice;
+
         // Calculate the bid and buyout prices
         uint32 currentprice = auction->bid ? auction->bid : auction->startbid;
         double bidrate = static_cast<double>(urand(1, 100)) / 100;
@@ -293,23 +296,26 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         LOG_INFO("module", "AHBot [{}]: Bid rate: {}", _id, bidrate);
 
         // Check that bid has an acceptable value and take bid based on vendorprice, stacksize and quality
+        // UseBuyPriceForBuyer = 1 -> Use Sell Price
         if (config->BuyMethod)
         {
             LOG_INFO("module", "AHBot [{}]: Buy method", _id);
             LOG_INFO("module", "AHBot [{}]: Quality: {}", _id, prototype->Quality);
 
+            // Check if the quality is supported
             if (prototype->Quality <= AHB_MAX_QUALITY)
             {
-                if (currentprice < prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
+                // Calculate the bid based on the quality
+                if (currentprice < SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
                 {
-                    bidMax = prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
-                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, prototype->SellPrice,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
+                    bidMax = SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
+                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, SellPriceToUse,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
                     LOG_INFO("module", "AHBot [{}]: Bid Max: {}", _id, bidMax);
                 }
                 else
                 {
-                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, prototype->SellPrice,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
-                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
+                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, SellPriceToUse,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
+                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
                 }
             }
             else
@@ -322,6 +328,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 continue;
             }
         }
+        // UseBuyPriceForBuyer = 0 -> Use Buy Price
         else
         {
             LOG_INFO("module", "AHBot [{}]: Bid method", _id);
@@ -329,14 +336,14 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
             if (prototype->Quality <= AHB_MAX_QUALITY)
             {
-                if (currentprice < prototype->BuyPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
+                if (currentprice < BuyPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
                 {
-                    bidMax = prototype->BuyPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
+                    bidMax = BuyPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
                     LOG_INFO("module", "AHBot [{}]: bidMax = {}", _id, bidMax);
                 }
                 else
                 {
-                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, prototype->BuyPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
+                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, BuyPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
                 }
             }
             else
@@ -432,6 +439,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
             // Save the auction into database
             CharacterDatabase.Execute("UPDATE auctionhouse SET buyguid = '{}', lastbid = '{}' WHERE id = '{}'", auction->bidder.GetCounter(), auction->bid, auction->Id);
+            LOG_INFO("module", "AHBot [{}]: Placed bid on auction ID {} with bid price {}", _id, auction->Id, bidprice);
         }
         else
         {
