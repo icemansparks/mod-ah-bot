@@ -285,13 +285,16 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         // Get price overrides
         auto [avgPrice, minPrice] = config->GetPriceOverrideForItem(prototype->ItemId);
-        uint64 SellPriceToUse = avgPrice > 0 ? avgPrice : prototype->SellPrice;
-        uint64 BuyPriceToUse = minPrice > 0 ? avgPrice : prototype->SellPrice;
+
+        uint64 maxPrice = (avgPrice + ( avgPrice - minPrice ));
+        uint64 SellPriceValue = maxPrice > 0 ? maxPrice : prototype->SellPrice;
+        uint64 BuyPriceValue = avgPrice > 0 ? avgPrice : prototype->BuyPrice;
 
         // Calculate the bid and buyout prices
         uint32 currentprice = auction->bid ? auction->bid : auction->startbid;
         double bidrate = static_cast<double>(urand(1, 100)) / 100;
         long double bidMax = 0;
+
         LOG_INFO("module", "AHBot [{}]: Current price: {}", _id, currentprice);
         LOG_INFO("module", "AHBot [{}]: Bid rate: {}", _id, bidrate);
 
@@ -306,9 +309,15 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             if (prototype->Quality <= AHB_MAX_QUALITY)
             {
                 // Calculate the bid based on the quality
-                if (currentprice < SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
+                // old calculation used quality multiplier from DB - this is not good and will be replaced by estimated max price based on min and avg price from price override, we still need a fallback if no proceoverride is given
+                //if (currentprice < SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
+
+                uint64 maxPriceToUse = maxPrice > 0 ? (maxPrice * pItem->GetCount()) : (SellPriceValue * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
+
+                if (currentprice < maxPriceToUse)
                 {
-                    bidMax = SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
+                    bidMax = maxPriceToUse;
+                    //bidMax = SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
                     LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, SellPriceToUse,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
                     LOG_INFO("module", "AHBot [{}]: Bid Max: {}", _id, bidMax);
                 }
@@ -334,11 +343,13 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             LOG_INFO("module", "AHBot [{}]: Bid method", _id);
             LOG_INFO("module", "AHBot [{}]: Quality: {}", _id, prototype->Quality);
 
+            uint64 maxPriceToUse = avgPrice > 0 ? (avgPrice * pItem->GetCount()) : (BuyPriceValue * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
+
             if (prototype->Quality <= AHB_MAX_QUALITY)
             {
-                if (currentprice < BuyPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
+                if (currentprice < maxPriceToUse)
                 {
-                    bidMax = BuyPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
+                    bidMax = maxPriceToUse;
                     LOG_INFO("module", "AHBot [{}]: bidMax = {}", _id, bidMax);
                 }
                 else
