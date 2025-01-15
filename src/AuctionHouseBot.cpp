@@ -210,7 +210,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
     if (!result || result->GetRowCount() == 0)
     {
-        LOG_ERROR("module", "AHBot [{}]: No items found to buy", _id);
+        LOG_ERROR("module", "AHBot [{}]: No items found to buy in auction house {}. Bot GUIDs: {}", _id, auctionHouseID, botGUIDsStr);
         return;
     }
 
