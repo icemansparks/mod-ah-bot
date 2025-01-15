@@ -189,6 +189,8 @@ uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* 
 
 void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* session)
 {
+    LOG_INFO("module", "AHBot [{}]: Starting buying process", _id);
+
     // Check if disabled
     if (!config->AHBBuyer)
     {
@@ -199,6 +201,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     // Retrieve items not owned by the bot and not bought by the bot
     std::string botGUIDsStr = JoinGUIDs(config->GetBotGUIDs());
     uint32 auctionHouseID = config->GetAHID();
+    LOG_INFO("module", "AHBot [{}]: Querying auction house {} for items not owned by bots", _id, auctionHouseID);
     QueryResult result = CharacterDatabase.Query("SELECT id FROM auctionhouse WHERE itemowner NOT IN ({}) AND buyguid NOT IN ({}) AND houseid = {}", botGUIDsStr, botGUIDsStr, auctionHouseID);
 
     if (!result || result->GetRowCount() == 0)
@@ -217,20 +220,26 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         possibleBids.insert(tmpdata);
     } while (result->NextRow());
 
+    LOG_INFO("module", "AHBot [{}]: Found {} possible bids", _id, possibleBids.size());
+
     // If it's not possible to bid stop here
     if (possibleBids.empty())
     {
         if (config->DebugOutBuyer)
         {
-            LOG_INFO("module", "AHBot [{}]: no auctions to bid on has been recovered", _id);
+            LOG_INFO("module", "AHBot [{}]: no auctions to bid on has been recovered in auction house {}", _id, auctionHouseID);
         }
 
         return;
     }
 
+    uint32 guid = AHBplayer->GetGUID().GetCounter();
+
     // Perform the operation for a maximum amount of bids attempts configured
     for (uint32 count = 1; count <= config->GetBidsPerInterval(); ++count)
     {
+        LOG_INFO("module", "AHBot [{}]: Attempting bid {}/{}", _id, count, config->GetBidsPerInterval());
+
         // Choose a random auction from possible auctions
         uint32 randBid = urand(0, possibleBids.size() - 1);
 
@@ -241,7 +250,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         if (!auction)
         {
-            LOG_ERROR("module", "AHBot [{}]: Could not find auction with ID {} in auction house {}", _id, *it, AuctionHouseId(config->GetAHID()));
+            LOG_ERROR("module", "AHBot [{}]: Could not find auction with ID {} in auction house {}", _id, *it, auctionHouseID);
             continue;
         }
 
@@ -318,10 +327,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             }
         }
 
-        //
         // Recalculate the bid depending on the type of the item
-        //
-
         switch (prototype->Class)
         {
             // ammo
@@ -332,35 +338,23 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             break;
         }
 
-        //
         // Test the computed bid
-        //
-
         if (bidMax == 0)
         {
             continue;
         }
 
-        //
         // Calculate our bid
-        //
-
         long double bidvalue = currentprice + ((bidMax - currentprice) * bidrate);
         uint32      bidprice = static_cast<uint32>(bidvalue);
 
-        //
         // Check our bid is high enough to be valid. If not, correct it to minimum.
-        //
-
         if ((currentprice + auction->GetAuctionOutBid()) > bidprice)
         {
             bidprice = currentprice + auction->GetAuctionOutBid();
         }
 
-        //
         // Print out debug info
-        //
-
         if (config->DebugOutBuyer)
         {
             LOG_INFO("module", "-------------------------------------------------");
@@ -400,71 +394,49 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             {
                 if (auction->bidder != AHBplayer->GetGUID())
                 {
-                    //
                     // Mail to last bidder and return their money
-                    //
-
                     auto trans = CharacterDatabase.BeginTransaction();
-
                     sAuctionMgr->SendAuctionOutbiddedMail(auction, bidprice, session->GetPlayer(), trans);
-                    CharacterDatabase.CommitTransaction  (trans);
+                    CharacterDatabase.CommitTransaction(trans);
                 }
             }
 
             auction->bidder = AHBplayer->GetGUID();
             auction->bid    = bidprice;
 
-            //
             // Save the auction into database
-            //
-
             CharacterDatabase.Execute("UPDATE auctionhouse SET buyguid = '{}', lastbid = '{}' WHERE id = '{}'", auction->bidder.GetCounter(), auction->bid, auction->Id);
         }
         else
         {
             bought = true;
 
-            //
             // Perform the buyout
-            //
-
             auto trans = CharacterDatabase.BeginTransaction();
 
             if ((auction->bidder) && (AHBplayer->GetGUID() != auction->bidder))
             {
-                //
                 // Send the mail to the last bidder
-                //
-
                 sAuctionMgr->SendAuctionOutbiddedMail(auction, auction->buyout, session->GetPlayer(), trans);
             }
 
             auction->bidder = AHBplayer->GetGUID();
             auction->bid    = auction->buyout;
 
-            //
             // Send mails to buyer & seller
-            //
-
             sAuctionMgr->SendAuctionSuccessfulMail(auction, trans);
-            sAuctionMgr->SendAuctionWonMail       (auction, trans);
+            sAuctionMgr->SendAuctionWonMail(auction, trans);
 
-            //
             // Removes any trace of the item
-            //
-
             auction->DeleteFromDB(trans);
 
-            sAuctionMgr->RemoveAItem   (auction->item_guid);
+            sAuctionMgr->RemoveAItem(auction->item_guid);
             auctionHouse->RemoveAuction(auction);
 
             CharacterDatabase.CommitTransaction(trans);
         }
 
-        //
         // Tracing
-        //
-
         if (config->TraceBuyer)
         {
             if (bought)
