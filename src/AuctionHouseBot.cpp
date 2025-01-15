@@ -318,13 +318,13 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 {
                     bidMax = maxPriceToUse;
                     //bidMax = SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
-                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, SellPriceToUse,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
+                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, maxPriceToUse,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
                     LOG_INFO("module", "AHBot [{}]: Bid Max: {}", _id, bidMax);
                 }
                 else
                 {
-                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, SellPriceToUse,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
-                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
+                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, maxPriceToUse,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
+                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, maxPriceToUse);
                 }
             }
             else
@@ -354,7 +354,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 }
                 else
                 {
-                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, BuyPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
+                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, maxPriceToUse);
                 }
             }
             else
