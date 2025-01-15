@@ -955,7 +955,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         if (config->TraceSeller)
         {
-            //todo: add item name, quality and stack size as well as totalAuctions
+            //TODO: add item name, quality and stack size as well as totalAuctions
             LOG_INFO("module", "AHBot [{}]: New stack ah={}, id={}, stack={}, bid={}, buyout={}", _id, config->GetAHID(), itemID, stackCount, auctionEntry->startbid, auctionEntry->buyout);
         }
     }
