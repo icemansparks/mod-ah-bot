@@ -244,6 +244,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         // Choose a random auction from possible auctions
         uint32 randBid = urand(0, possibleBids.size() - 1);
+        LOG_INFO("module", "AHBot [{}]: Random bid: {}", _id, randBid);
 
         std::set<uint32>::iterator it = possibleBids.begin();
         std::advance(it, randBid);
@@ -288,16 +289,25 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         uint32 currentprice = auction->bid ? auction->bid : auction->startbid;
         double bidrate = static_cast<double>(urand(1, 100)) / 100;
         long double bidMax = 0;
+        LOG_INFO("module", "AHBot [{}]: Current price: {}", _id, currentprice);
+        LOG_INFO("module", "AHBot [{}]: Bid rate: {}", _id, bidrate);
 
         // Check that bid has an acceptable value and take bid based on vendorprice, stacksize and quality
         if (config->BuyMethod)
         {
+            LOG_INFO("module", "AHBot [{}]: Buy method", _id);
+            LOG_INFO("module", "AHBot [{}]: Quality: {}", _id, prototype->Quality);
+
             if (prototype->Quality <= AHB_MAX_QUALITY)
             {
                 if (currentprice < prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
                 {
                     bidMax = prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
                     LOG_INFO("module", "AHBot [{}]: Bid Max: {}", _id, bidMax);
+                }
+                else
+                {
+                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, prototype->SellPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
                 }
             }
             else
@@ -312,12 +322,19 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         }
         else
         {
+            LOG_INFO("module", "AHBot [{}]: Bid method", _id);
+            LOG_INFO("module", "AHBot [{}]: Quality: {}", _id, prototype->Quality);
+
             if (prototype->Quality <= AHB_MAX_QUALITY)
             {
                 if (currentprice < prototype->BuyPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
                 {
                     bidMax = prototype->BuyPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
                     LOG_INFO("module", "AHBot [{}]: bidMax = {}", _id, bidMax);
+                }
+                else
+                {
+                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, prototype->BuyPrice * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
                 }
             }
             else
@@ -337,6 +354,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             // ammo
         case 6:
             bidMax = 0;
+            LOG_INFO("module", "AHBot [{}]: Skipping ammo item", _id);
             break;
         default:
             break;
@@ -345,6 +363,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         // Test the computed bid
         if (bidMax == 0)
         {
+            LOG_INFO("module", "AHBot [{}]: Computed bidMax is 0, skipping", _id);
             continue;
         }
 
@@ -439,6 +458,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             auctionHouse->RemoveAuction(auction);
 
             CharacterDatabase.CommitTransaction(trans);
+            LOG_INFO("module", "AHBot [{}]: Bought out auction ID {} with buyout price {}", _id, auction->Id, auction->buyout);
         }
 
         // Tracing
