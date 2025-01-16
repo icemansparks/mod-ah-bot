@@ -638,8 +638,11 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 orangeItems   = config->GetItemCounts(AHB_ORANGE_I);
     uint32 yellowItems   = config->GetItemCounts(AHB_YELLOW_I);
 
-    std::vector<uint32> itemsToSell;
-    itemsToSell = GetItemsToSell(config);
+    // Initialize item counts
+    std::vector<uint32> itemCounts(14, 0);
+
+    // Get prioritized item IDs
+    std::vector<uint32> itemsToSell = GetItemsToSell(config);
 
     // Loop variables
     uint32 noSold    = 0; // Tracing counter
@@ -652,18 +655,20 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     //for (uint32 cnt = 1; cnt <= items; cnt++)
     for (uint32 itemID : itemsToSell)
     {
-        uint32 choice      = 0;
+        if (auctions >= maxAuctionsPerBot)
+        {
+            break;
+        }
 
         // Select item by rarity
-        auto [selectedItemID, choice] = SelectItemByRarity(config, auctionHouse, greyItems, whiteItems, greenItems, blueItems, purpleItems, orangeItems, yellowItems, greyTGoods, whiteTGoods, greenTGoods, blueTGoods, purpleTGoods, orangeTGoods, yellowTGoods);
+        uint32 choice;
+        std::tie(itemID, choice, itemCounts) = SelectItemByRarity(config, auctionHouse, itemCounts);
 
         if (itemID == 0)
         {
             loopBrk++;
             return;
         }
-
-        itemID = selectedItemID;
 
         // Retrieve information about the selected item
         ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(itemID);
@@ -1067,7 +1072,13 @@ std::pair<uint32, uint32> AuctionHouseBot::SelectItemByRarity(AHBConfig* config,
         }
     }
 
-    return std::make_pair(itemID, choice);
+    // Update the item counts based on the choice
+    if (itemID != 0)
+    {
+        itemCounts[choice]++;
+    }
+
+    return std::make_tuple(itemID, choice, itemCounts);
 }
 
 // =============================================================================
