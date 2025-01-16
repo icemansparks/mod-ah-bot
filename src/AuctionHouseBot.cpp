@@ -598,30 +598,21 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     // Determine the number of items to list
      if (totalAuctions < minItems)
     {
-        LOG_ERROR("module", "AHBot [{}]: minItems {} ", _id, minItems);
-        LOG_ERROR("module", "AHBot [{}]: Total auctions {} below minimum", _id, totalAuctions);
-        LOG_ERROR("module", "AHBot [{}]: minAuctionsPerBot: {} current_auctions: {}", _id, totalAuctions, auctions);
-
         // Add new auctions quickly until totalAuctions reach minItems
         uint32 maxItemsToList = minAuctionsPerBot - auctions;
-        LOG_ERROR("module", "AHBot [{}]: maxItemsToList: {}", _id, maxItemsToList);
 
         // Ensure maxItemsToList is less than or equal to minAuctionsPerBot
         if (maxItemsToList > minAuctionsPerBot)
         {
             maxItemsToList = minAuctionsPerBot;
         }
-        LOG_ERROR("module", "AHBot [{}]: maxItemsToList: {}", _id, maxItemsToList);
-        LOG_ERROR("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
+
         items = urand(maxItemsToList, minAuctionsPerBot);
     }
     else
     {
         // Gradually increase the number of auctions with ItemsPerCycle
-        LOG_ERROR("module", "AHBot [{}]: Total auctions {} above minimum", _id, totalAuctions);
-        LOG_ERROR("module", "AHBot [{}]: maxAuctionsPerBot: {} current_auctions: {}", _id, maxAuctionsPerBot, auctions);
         uint32 maxItemsToList = maxAuctionsPerBot - auctions;
-        LOG_ERROR("module", "AHBot [{}]: maxItemsToList: {}", _id, maxItemsToList);
         items = config->ItemsPerCycle;
 
         if (items > maxItemsToList)
@@ -680,11 +671,17 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 loopBrk   = 0; // Tracing counter
     uint32 err       = 0; // Tracing counter
 
-    //for (uint32 cnt = 1; cnt <= items; cnt++)
-    for (uint32 itemID : itemsToSell)
+    // maxItemsToList is the number of items to list
+    for (uint32 cnt = 0; cnt < maxItemsToList && cnt < itemsToSell.size(); ++cnt)
     {
+        uint32 itemID = itemsToSell[cnt];
+
         // Update Auctions count for current Bot
         auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
+        LOG_ERROR("module", "AHBot [{}]: totalAuctions: {} ", _id, totalAuctions);
+        LOG_ERROR("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
+        LOG_ERROR("module", "AHBot [{}]: maxAuctionsPerBot: {} current_auctions: {}", _id, maxAuctionsPerBot, auctions);
+
         if (auctions >= maxAuctionsPerBot)
         {
             break;
