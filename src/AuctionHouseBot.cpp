@@ -914,7 +914,7 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGui
     // Prioritize items with price overrides that are not listed by the bot yet
     for (const auto& [itemID, prices] : config->itemPriceOverrides)
     {
-        if (!IsItemListedByBot(itemID, config->GetAHID()), botGuid)
+        if (!IsItemListedByBot(itemID, config->GetAHID(), botGuid))
         {
             prioritizedItemIDs.push_back(itemID);
         }
