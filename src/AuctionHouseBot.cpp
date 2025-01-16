@@ -1027,9 +1027,9 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         LOG_INFO("module", "AHBot [{}]: Base bid price: {}", _id, baseBidPrice);
 
         LOG_INFO("module", "AHBot [{}]: right before deviation calculation", _id);
-        int32 buyoutDeviation = urand(-10, 10);
+        int32 buyoutDeviation = urand(0, 20) - 10;
         LOG_INFO("module", "AHBot [{}]: Buyout deviation: {}", _id, buyoutDeviation);
-        int32 bidDeviation = urand(-10, 10);
+        int32 bidDeviation = urand(0, 20) - 10;
         LOG_INFO("module", "AHBot [{}]: Bid deviation: {}", _id, bidDeviation);
 
         // Adjust the baseline values with random deviation
