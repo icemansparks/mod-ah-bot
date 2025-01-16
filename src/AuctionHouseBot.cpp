@@ -569,7 +569,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     {
         if (config->DebugOutSeller)
         {
-            LOG_ERROR("module", "AHBot [{}]: Total auctions at or above maximum", _id);
+            LOG_ERROR("module", "AHBot [{}]: Total auctions {} at or above maximum {} for AH: {}", _id, totalAuctions, maxItems, config->GetAHFID());
         }
         return;
     }
@@ -1372,10 +1372,11 @@ void AuctionHouseBot::Update()
     // Neutral
     if (_neutralConfig)
     {
-        Sell(&_AHBplayer, _neutralConfig);
+        // original sell function call was here
 
         if (((_newrun - _lastrun_n_sec) >= (_neutralConfig->GetBiddingInterval() * MINUTE)) && (_neutralConfig->GetBidsPerInterval() > 0))
         {
+            Sell(&_AHBplayer, _neutralConfig);
             Buy(&_AHBplayer, _neutralConfig, &_session);
             _lastrun_n_sec = _newrun;
         }
