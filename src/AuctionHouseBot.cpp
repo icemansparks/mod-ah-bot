@@ -29,11 +29,8 @@
 #include "Player.h"
 #include "AuctionHouseSearcher.h"
 
-AuctionHouseSearcher* sAuctionHouseSearcher = nullptr;
-
 #include <algorithm>
 #include <vector>
-
 #include <set>
 #include <random>
 #include <sstream>
@@ -42,6 +39,8 @@ AuctionHouseSearcher* sAuctionHouseSearcher = nullptr;
 
 using namespace std;
 using CharacterDatabaseQueryHolder = SQLQueryHolder<CharacterDatabaseConnection>;
+
+AuctionHouseSearcher* sAuctionHouseSearcher = nullptr;
 
 AuctionHouseBot::AuctionHouseBot(uint32 account, uint32 id)
 {
