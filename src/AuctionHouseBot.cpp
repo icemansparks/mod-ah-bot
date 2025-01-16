@@ -34,6 +34,7 @@
 #include <set>
 #include <random>
 #include <sstream>
+#include <map>
 
 #include "AuctionHouseBotCommon.h"
 
@@ -972,7 +973,7 @@ bool AuctionHouseBot::IsItemListedByBot(uint32 itemID, uint32 ahID)
         return false;
     }
 
-    const AuctionEntryMap& auctions = auctionHouse->GetAuctions();
+    const std::map<uint32, AuctionEntry*>& auctions = auctionHouse->GetAuctions();
     for (const auto& auction : auctions)
     {
         if (auction.second->item_template == itemID && auction.second->owner == GetAHBplayerGUID())
@@ -995,7 +996,7 @@ bool AuctionHouseBot::IsItemInAuctionHouse(uint32 itemID, uint32 ahID)
         return false;
     }
 
-    const AuctionEntryMap& auctions = auctionHouse->GetAuctions();
+    const std::map<uint32, AuctionEntry*>& auctions = auctionHouse->GetAuctions();
     for (const auto& auction : auctions)
     {
         if (auction.second->item_template == itemID)
