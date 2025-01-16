@@ -88,7 +88,7 @@ public:
     bool IsItemInAuctionHouse(uint32 itemID, uint32 ahID);
     std::vector<uint32> GetAllItemIDs(uint32 ahID);
 
-    std::tuple<uint32, int32, std::vector<uint32>, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32> SelectItemByRarity(
+    std::tuple<uint32, int32, std::vector<uint32>, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32> SelectItemByRarity(
     AHBConfig* config,
     AuctionHouseObject* auctionHouse,
     std::vector<uint32> itemCounts,

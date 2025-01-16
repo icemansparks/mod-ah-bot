@@ -1057,7 +1057,7 @@ std::vector<uint32> AuctionHouseBot::GetAllItemIDs(uint32 ahID)
 // Select random item by rarity
 // =============================================================================
 
-std::tuple<uint32, int32, std::vector<uint32>, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32> AuctionHouseBot::SelectItemByRarity(
+std::tuple<uint32, int32, std::vector<uint32>, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32> AuctionHouseBot::SelectItemByRarity(
     AHBConfig* config,
     AuctionHouseObject* auctionHouse,
     std::vector<uint32> itemCounts,
