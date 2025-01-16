@@ -577,6 +577,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 numBots = config->GetBotGUIDs().size();
     uint32 maxAuctionsPerBot = (maxItems + numBots - 1) / numBots;
     uint32 minAuctionsPerBot = (minItems + numBots - 1) / numBots;
+    uint32 auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
 
     uint32 items = 0;
 
@@ -597,8 +598,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     // Determine the number of items to list
      if (totalAuctions < minItems)
     {
-        uint32 auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
-
         LOG_ERROR("module", "AHBot [{}]: minItems {} ", _id, minItems);
         LOG_ERROR("module", "AHBot [{}]: Total auctions {} below minimum", _id, totalAuctions);
         LOG_ERROR("module", "AHBot [{}]: minAuctionsPerBot: {} current_auctions: {}", _id, totalAuctions, auctions);
@@ -684,6 +683,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     //for (uint32 cnt = 1; cnt <= items; cnt++)
     for (uint32 itemID : itemsToSell)
     {
+        // Update Auctions count for current Bot
+        auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
         if (auctions >= maxAuctionsPerBot)
         {
             break;
