@@ -246,10 +246,12 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         // Choose a random auction from possible auctions
         uint32 randBid = 0;
+        LOG_INFO("module", "AHBot [{}]: possibleBids.size: {}", _id, possibleBids.size());
         if (possibleBids.size() > 0)
         {
             if (possibleBids.size() > 1)
             {
+                LOG_INFO("module", "AHBot [{}]: possibleBids.size: {}", _id, possibleBids.size());
                 randBid = urand(0, possibleBids.size() - 1);
             }
             else
@@ -604,7 +606,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         {
             maxItemsToList = minAuctionsPerBot;
         }
-
+        LOG_INFO("module", "AHBot [{}]: maxItemsToList: {}", _id, maxItemsToList);
+        LOG_INFO("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
         items = urand(maxItemsToList, minAuctionsPerBot);
     }
     else
@@ -689,12 +692,14 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Poor
             if ((config->GreyItemsBin.size() > 0) && (greyItems < config->GetMaximum(AHB_GREY_I)))
             {
+                LOG_INFO("module", "AHBot [{}]: config->GreyItemsBin.size: {}", _id, config->GreyItemsBin.size());
                 itemID = getElement(config->GreyItemsBin, urand(0, config->GreyItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 0;
             }
 
             if (itemID == 0 && (config->GreyTradeGoodsBin.size() > 0) && (greyTGoods < config->GetMaximum(AHB_GREY_TG)))
             {
+                LOG_INFO("module", "AHBot [{}]: config->GreyTradeGoodsBin.size: {}", _id, config->GreyTradeGoodsBin.size());
                 itemID = getElement(config->GreyTradeGoodsBin, urand(0, config->GreyTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 7;
             }
@@ -702,6 +707,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Normal
             if (itemID == 0 && (config->WhiteItemsBin.size() > 0) && (whiteItems < config->GetMaximum(AHB_WHITE_I)))
             {
+                LOG_INFO("module", "AHBot [{}]: config->WhiteItemsBin.size: {}", _id, config->WhiteItemsBin.size());
                 itemID = getElement(config->WhiteItemsBin, urand(0, config->WhiteItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 1;
             }
