@@ -665,15 +665,15 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         // Select item by rarity
         uint32 choice;
-        auto [itemID, choice, itemCounts] = SelectItemByRarity(
-        config, auctionHouse, itemCounts,
-        greyItems, greyTGoods,
-        whiteItems, whiteTGoods,
-        greenItems, greenTGoods,
-        blueItems, blueTGoods,
-        purpleItems, purpleTGoods,
-        orangeItems, orangeTGoods,
-        yellowItems, yellowTGoods);
+        std::tie(itemID, choice, itemCounts, greyItems, greyTGoods, whiteItems, whiteTGoods, greenItems, greenTGoods, blueItems, blueTGoods, purpleItems, purpleTGoods, orangeItems, orangeTGoods, yellowItems, yellowTGoods) = SelectItemByRarity(
+            config, auctionHouse, itemCounts,
+            greyItems, greyTGoods,
+            whiteItems, whiteTGoods,
+            greenItems, greenTGoods,
+            blueItems, blueTGoods,
+            purpleItems, purpleTGoods,
+            orangeItems, orangeTGoods,
+            yellowItems, yellowTGoods);
 
         if (itemID == 0)
         {
