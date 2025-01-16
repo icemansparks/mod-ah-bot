@@ -691,14 +691,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             {
                 itemID = getElement(config->GreyItemsBin, urand(0, config->GreyItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 0;
-                greyItems++;
             }
 
             if (itemID == 0 && (config->GreyTradeGoodsBin.size() > 0) && (greyTGoods < config->GetMaximum(AHB_GREY_TG)))
             {
                 itemID = getElement(config->GreyTradeGoodsBin, urand(0, config->GreyTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 7;
-                greyTGoods++;
             }
 
             // Normal
@@ -706,14 +704,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             {
                 itemID = getElement(config->WhiteItemsBin, urand(0, config->WhiteItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 1;
-                whiteItems++;
             }
 
             if (itemID == 0 && (config->WhiteTradeGoodsBin.size() > 0) && (whiteTGoods < config->GetMaximum(AHB_WHITE_TG)))
             {
                 itemID = getElement(config->WhiteTradeGoodsBin, urand(0, config->WhiteTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 8;
-                whiteTGoods++;
             }
 
             // Uncommon
@@ -721,14 +717,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             {
                 itemID = getElement(config->GreenItemsBin, urand(0, config->GreenItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 2;
-                greenItems++;
             }
 
             if (itemID == 0 && (config->GreenTradeGoodsBin.size() > 0) && (greenTGoods < config->GetMaximum(AHB_GREEN_TG)))
             {
                 itemID = getElement(config->GreenTradeGoodsBin, urand(0, config->GreenTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 9;
-                greenTGoods++;
             }
 
             // Rare
@@ -736,14 +730,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             {
                 itemID = getElement(config->BlueItemsBin, urand(0, config->BlueItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 3;
-                blueItems++;
             }
 
             if (itemID == 0 && (config->BlueTradeGoodsBin.size() > 0) && (blueTGoods < config->GetMaximum(AHB_BLUE_TG)))
             {
                 itemID = getElement(config->BlueTradeGoodsBin, urand(0, config->BlueTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 10;
-                blueTGoods++;
             }
 
             // Epic
@@ -751,14 +743,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             {
                 itemID = getElement(config->PurpleItemsBin, urand(0, config->PurpleItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 4;
-                purpleItems++;
             }
 
             if (itemID == 0 && (config->PurpleTradeGoodsBin.size() > 0) && (purpleTGoods < config->GetMaximum(AHB_PURPLE_TG)))
             {
                 itemID = getElement(config->PurpleTradeGoodsBin, urand(0, config->PurpleTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 11;
-                purpleTGoods++;
             }
 
             // Legendary
@@ -766,14 +756,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             {
                 itemID = getElement(config->OrangeItemsBin, urand(0, config->OrangeItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 5;
-                orangeItems++;
             }
 
             if (itemID == 0 && (config->OrangeTradeGoodsBin.size() > 0) && (orangeTGoods < config->GetMaximum(AHB_ORANGE_TG)))
             {
                 itemID = getElement(config->OrangeTradeGoodsBin, urand(0, config->OrangeTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 12;
-                orangeTGoods++;
             }
 
             // Artifact
@@ -781,15 +769,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             {
                 itemID = getElement(config->YellowItemsBin, urand(0, config->YellowItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 6;
-                yellowItems++;
             }
 
             if (itemID == 0 && (config->YellowTradeGoodsBin.size() > 0) && (yellowTGoods < config->GetMaximum(AHB_YELLOW_TG)))
             {
                 itemID = getElement(config->YellowTradeGoodsBin, urand(0, config->YellowTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
                 choice = 13;
-                yellowTGoods++;
-
             }
 
             if (itemID == 0)
