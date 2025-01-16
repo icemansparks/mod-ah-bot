@@ -957,10 +957,60 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
 }
 
 // =============================================================================
+// Find out if item is listed by current bot
+// =============================================================================
+
+bool AuctionHouseBot::IsItemListedByBot(uint32 itemID)
+{
+    for (const auto& auction : sAuctionMgr->GetAuctions())
+    {
+        if (auction->item_template == itemID && auction->owner == GetAHBplayerGUID())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::vector<uint32> AuctionHouseBot::GetAllItemIDs()
+{
+    std::vector<uint32> allItemIDs;
+    std::set<uint32> disabledItems;
+
+    // Retrieve the list of disabled items from the database
+    QueryResult result = WorldDatabase.Query("SELECT item FROM mod_auctionhousebot_disabled_items");
+
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            disabledItems.insert(fields[0].Get<uint32>());
+        } while (result->NextRow());
+    }
+
+    // Retrieve all item templates
+    ItemTemplateContainer const* its = sObjectMgr->GetItemTemplateStore();
+
+    for (ItemTemplateContainer::const_iterator itr = its->begin(); itr != its->end(); ++itr)
+    {
+        uint32 itemID = itr->second.ItemId;
+
+        // Check if the item is not in the disabled items list
+        if (disabledItems.find(itemID) == disabledItems.end())
+        {
+            allItemIDs.push_back(itemID);
+        }
+    }
+
+    return allItemIDs;
+}
+
+// =============================================================================
 // Select random item by rarity
 // =============================================================================
 
-std::pair<uint32, uint32> AuctionHouseBot::SelectItemByRarity(AHBConfig* config, AuctionHouseObject* auctionHouse, uint32& greyItems, uint32& whiteItems, uint32& greenItems, uint32& blueItems, uint32& purpleItems, uint32& orangeItems, uint32& yellowItems, uint32& greyTGoods, uint32& whiteTGoods, uint32& greenTGoods, uint32& blueTGoods, uint32& purpleTGoods, uint32& orangeTGoods, uint32& yellowTGoods)
+std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRarity(AHBConfig* config, AuctionHouseObject* auctionHouse, std::vector<uint32> itemCounts)
 {
     uint32 choice = 0;
     uint32 itemID = 0;
