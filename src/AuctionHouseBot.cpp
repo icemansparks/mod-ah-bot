@@ -974,9 +974,10 @@ bool AuctionHouseBot::IsItemListedByBot(uint32 itemID, uint32 ahID)
     }
 
     const std::map<uint32, AuctionEntry*>& auctions = auctionHouse->GetAuctions();
+    ObjectGuid botGuid = ObjectGuid::Create<HighGuid::Player>(GetAHBplayerGUID());
     for (const auto& auction : auctions)
     {
-        if (auction.second->item_template == itemID && auction.second->owner == GetAHBplayerGUID())
+        if (auction.second->item_template == itemID && auction.second->owner == botGuid())
         {
             return true;
         }
