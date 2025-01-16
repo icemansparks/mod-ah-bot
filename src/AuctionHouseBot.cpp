@@ -600,7 +600,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         uint32 maxItemsToList = minAuctionsPerBot - auctions;
 
         // Ensure maxItemsToList is greater than or equal to minAuctionsPerBot
-        if (maxItemsToList < minAuctionsPerBot)
+        if (maxItemsToList > minAuctionsPerBot)
         {
             maxItemsToList = minAuctionsPerBot;
         }
