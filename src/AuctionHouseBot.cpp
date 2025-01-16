@@ -645,7 +645,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     std::vector<uint32> itemCounts(14, 0);
 
     // Get prioritized item IDs
-    std::vector<uint32> itemsToSell = GetItemsToSell(config);
+    std::vector<uint32> itemsToSell = GetItemsToSell(config, AHBplayer->GetGUID());
 
     // Loop variables
     uint32 noSold    = 0; // Tracing counter
@@ -907,14 +907,14 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 // Get Prioritized ItemIDs
 // =============================================================================
 
-std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
+std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGuid botGuid)
 {
     std::vector<uint32> prioritizedItemIDs;
 
     // Prioritize items with price overrides that are not listed by the bot yet
     for (const auto& [itemID, prices] : config->itemPriceOverrides)
     {
-        if (!IsItemListedByBot(itemID, config->GetAHID()))
+        if (!IsItemListedByBot(itemID, config->GetAHID()), botGuid)
         {
             prioritizedItemIDs.push_back(itemID);
         }
@@ -965,7 +965,7 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
 // Find out if item is listed by current bot
 // =============================================================================
 
-bool AuctionHouseBot::IsItemListedByBot(uint32 itemID, uint32 ahID)
+bool AuctionHouseBot::IsItemListedByBot(uint32 itemID, uint32 ahID, ObjectGuid botGuid)
 {
     AuctionHouseObject* auctionHouse = sAuctionMgr->GetAuctionsMap(ahID);
     if (!auctionHouse)
@@ -974,7 +974,6 @@ bool AuctionHouseBot::IsItemListedByBot(uint32 itemID, uint32 ahID)
     }
 
     const std::map<uint32, AuctionEntry*>& auctions = auctionHouse->GetAuctions();
-    ObjectGuid botGuid = ObjectGuid::Create<HighGuid::Player>(GetAHBplayerGUID());
     for (const auto& auction : auctions)
     {
         if (auction.second->item_template == itemID && auction.second->owner == botGuid())
