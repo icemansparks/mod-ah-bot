@@ -951,7 +951,9 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
     }
 
     // Shuffle the prioritized item IDs to add randomness
-    std::random_shuffle(prioritizedItemIDs.begin(), prioritizedItemIDs.end());
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(prioritizedItemIDs.begin(), prioritizedItemIDs.end(), g);
 
     return prioritizedItemIDs;
 }
