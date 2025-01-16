@@ -452,7 +452,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             CharacterDatabase.Execute("UPDATE auctionhouse SET buyguid = '{}', lastbid = '{}' WHERE id = '{}'", auction->bidder.GetCounter(), auction->bid, auction->Id);
 
             // Notify the auction house of the bid update
-            sAuctionMgr->UpdateAuction(auction);
+            sAuctionMgr->UpdateBid(auction);
 
             LOG_INFO("module", "AHBot [{}]: Placed bid on auction ID {} with bid price {}", _id, auction->Id, bidprice);
         }
