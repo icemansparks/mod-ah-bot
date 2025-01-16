@@ -689,6 +689,22 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         {
             loopbreaker++;
 
+             // Log the sizes of all bins
+            LOG_INFO("module", "AHBot [{}]: GreyItemsBin.size: {}", _id, config->GreyItemsBin.size());
+            LOG_INFO("module", "AHBot [{}]: GreyTradeGoodsBin.size: {}", _id, config->GreyTradeGoodsBin.size());
+            LOG_INFO("module", "AHBot [{}]: WhiteItemsBin.size: {}", _id, config->WhiteItemsBin.size());
+            LOG_INFO("module", "AHBot [{}]: WhiteTradeGoodsBin.size: {}", _id, config->WhiteTradeGoodsBin.size());
+            LOG_INFO("module", "AHBot [{}]: GreenItemsBin.size: {}", _id, config->GreenItemsBin.size());
+            LOG_INFO("module", "AHBot [{}]: GreenTradeGoodsBin.size: {}", _id, config->GreenTradeGoodsBin.size());
+            LOG_INFO("module", "AHBot [{}]: BlueItemsBin.size: {}", _id, config->BlueItemsBin.size());
+            LOG_INFO("module", "AHBot [{}]: BlueTradeGoodsBin.size: {}", _id, config->BlueTradeGoodsBin.size());
+            LOG_INFO("module", "AHBot [{}]: PurpleItemsBin.size: {}", _id, config->PurpleItemsBin.size());
+            LOG_INFO("module", "AHBot [{}]: PurpleTradeGoodsBin.size: {}", _id, config->PurpleTradeGoodsBin.size());
+            LOG_INFO("module", "AHBot [{}]: OrangeItemsBin.size: {}", _id, config->OrangeItemsBin.size());
+            LOG_INFO("module", "AHBot [{}]: OrangeTradeGoodsBin.size: {}", _id, config->OrangeTradeGoodsBin.size());
+            LOG_INFO("module", "AHBot [{}]: YellowItemsBin.size: {}", _id, config->YellowItemsBin.size());
+            LOG_INFO("module", "AHBot [{}]: YellowTradeGoodsBin.size: {}", _id, config->YellowTradeGoodsBin.size());
+
             // Poor
             if ((config->GreyItemsBin.size() > 0) && (greyItems < config->GetMaximum(AHB_GREY_I)))
             {
