@@ -1322,6 +1322,7 @@ void AuctionHouseBot::Update()
     }
 
     // Preprare for operation
+    //TODO: Use account name from defined account from configuration
     std::string accountName = "AuctionHouseBot" + std::to_string(_account);
 
     WorldSession _session(_account, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, false, 0);
@@ -1337,10 +1338,11 @@ void AuctionHouseBot::Update()
         // Alliance
         if (_allianceConfig)
         {
-            Sell(&_AHBplayer, _allianceConfig);
+            //oriignal sell fucntion call was here
 
             if (((_newrun - _lastrun_a_sec) >= (_allianceConfig->GetBiddingInterval() * MINUTE)) && (_allianceConfig->GetBidsPerInterval() > 0))
             {
+                Sell(&_AHBplayer, _allianceConfig);
                 Buy(&_AHBplayer, _allianceConfig, &_session);
                 _lastrun_a_sec = _newrun;
             }
@@ -1349,10 +1351,11 @@ void AuctionHouseBot::Update()
         // Horde
         if (_hordeConfig)
         {
-            Sell(&_AHBplayer, _hordeConfig);
+            // original sell function call was here
 
             if (((_newrun - _lastrun_h_sec) >= (_hordeConfig->GetBiddingInterval() * MINUTE)) && (_hordeConfig->GetBidsPerInterval() > 0))
             {
+                Sell(&_AHBplayer, _hordeConfig);
                 Buy(&_AHBplayer, _hordeConfig, &_session);
                 _lastrun_h_sec = _newrun;
             }
