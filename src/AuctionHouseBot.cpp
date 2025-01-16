@@ -672,6 +672,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 loopBrk   = 0; // Tracing counter
     uint32 err       = 0; // Tracing counter
 
+    //LOG_ERROR("module", "AHBot [{}]: totalAuctions: {} ", _id, totalAuctions);
+
     // maxItemsToList is the number of items to list
     for (uint32 cnt = 0; cnt < maxItemsToList && cnt < itemsToSell.size(); ++cnt)
     {
@@ -679,8 +681,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         // Update Auctions count for current Bot
         auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
-        LOG_ERROR("module", "AHBot [{}]: totalAuctions: {} ", _id, totalAuctions);
-        LOG_ERROR("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
+        //LOG_ERROR("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
         LOG_ERROR("module", "AHBot [{}]: maxAuctionsPerBot: {} current_auctions: {}", _id, maxAuctionsPerBot, auctions);
 
         if (auctions >= maxAuctionsPerBot)
