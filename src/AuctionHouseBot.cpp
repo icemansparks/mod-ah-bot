@@ -245,15 +245,15 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         LOG_INFO("module", "AHBot [{}]: Attempting bid {}/{}", _id, count, config->GetBidsPerInterval());
 
         // Choose a random auction from possible auctions
+        uint32 randBid = 0;
         if (possibleBids.size() > 0)
         {
-            uint32 randBid = urand(0, possibleBids.size() - 1);
+            randBid = urand(0, possibleBids.size() - 1);
             LOG_INFO("module", "AHBot [{}]: Random bid: {}", _id, randBid);
         }
         else
         {
             LOG_ERROR("module", "AHBot: No possible bids available");
-            uint32 randBid = 0;
         }
 
         std::set<uint32>::iterator it = possibleBids.begin();
