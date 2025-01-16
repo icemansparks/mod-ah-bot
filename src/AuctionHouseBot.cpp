@@ -665,7 +665,15 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         // Select item by rarity
         uint32 choice;
-        std::tie(itemID, choice, itemCounts) = SelectItemByRarity(config, auctionHouse, itemCounts);
+        auto [itemID, choice, itemCounts] = SelectItemByRarity(
+        config, auctionHouse, itemCounts,
+        greyItems, greyTGoods,
+        whiteItems, whiteTGoods,
+        greenItems, greenTGoods,
+        blueItems, blueTGoods,
+        purpleItems, purpleTGoods,
+        orangeItems, orangeTGoods,
+        yellowItems, yellowTGoods);
 
         if (itemID == 0)
         {
@@ -1049,7 +1057,17 @@ std::vector<uint32> AuctionHouseBot::GetAllItemIDs(uint32 ahID)
 // Select random item by rarity
 // =============================================================================
 
-std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRarity(AHBConfig* config, AuctionHouseObject* auctionHouse, std::vector<uint32> itemCounts)
+std::tuple<uint32, int32, std::vector<uint32>, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32> AuctionHouseBot::SelectItemByRarity(
+    AHBConfig* config,
+    AuctionHouseObject* auctionHouse,
+    std::vector<uint32> itemCounts,
+    uint32 greyItems, uint32 greyTGoods,
+    uint32 whiteItems, uint32 whiteTGoods,
+    uint32 greenItems, uint32 greenTGoods,
+    uint32 blueItems, uint32 blueTGoods,
+    uint32 purpleItems, uint32 purpleTGoods,
+    uint32 orangeItems, uint32 orangeTGoods,
+    uint32 yellowItems, uint32 yellowTGoods)
 {
     uint32 choice = 0;
     uint32 itemID = 0;
@@ -1064,12 +1082,14 @@ std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRari
         {
             itemID = getElement(config->GreyItemsBin, urand(0, config->GreyItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 0;
+            greyItems++;
         }
 
         if (itemID == 0 && (config->GreyTradeGoodsBin.size() > 0) && (greyTGoods < config->GetMaximum(AHB_GREY_TG)))
         {
             itemID = getElement(config->GreyTradeGoodsBin, urand(0, config->GreyTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 7;
+            greyTGoods++;
         }
 
         // Normal
@@ -1077,12 +1097,14 @@ std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRari
         {
             itemID = getElement(config->WhiteItemsBin, urand(0, config->WhiteItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 1;
+            whiteItems++;
         }
 
         if (itemID == 0 && (config->WhiteTradeGoodsBin.size() > 0) && (whiteTGoods < config->GetMaximum(AHB_WHITE_TG)))
         {
             itemID = getElement(config->WhiteTradeGoodsBin, urand(0, config->WhiteTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 8;
+            whiteTGoods++;
         }
 
         // Uncommon
@@ -1090,12 +1112,14 @@ std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRari
         {
             itemID = getElement(config->GreenItemsBin, urand(0, config->GreenItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 2;
+            greenItems++;
         }
 
         if (itemID == 0 && (config->GreenTradeGoodsBin.size() > 0) && (greenTGoods < config->GetMaximum(AHB_GREEN_TG)))
         {
             itemID = getElement(config->GreenTradeGoodsBin, urand(0, config->GreenTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 9;
+            greenTGoods++;
         }
 
         // Rare
@@ -1103,12 +1127,14 @@ std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRari
         {
             itemID = getElement(config->BlueItemsBin, urand(0, config->BlueItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 3;
+            blueItems++;
         }
 
         if (itemID == 0 && (config->BlueTradeGoodsBin.size() > 0) && (blueTGoods < config->GetMaximum(AHB_BLUE_TG)))
         {
             itemID = getElement(config->BlueTradeGoodsBin, urand(0, config->BlueTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 10;
+            blueTGoods++;
         }
 
         // Epic
@@ -1116,12 +1142,14 @@ std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRari
         {
             itemID = getElement(config->PurpleItemsBin, urand(0, config->PurpleItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 4;
+            purpleItems++;
         }
 
         if (itemID == 0 && (config->PurpleTradeGoodsBin.size() > 0) && (purpleTGoods < config->GetMaximum(AHB_PURPLE_TG)))
         {
             itemID = getElement(config->PurpleTradeGoodsBin, urand(0, config->PurpleTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 11;
+            purpleTGoods++;
         }
 
         // Legendary
@@ -1129,12 +1157,14 @@ std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRari
         {
             itemID = getElement(config->OrangeItemsBin, urand(0, config->OrangeItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 5;
+            orangeItems++;
         }
 
         if (itemID == 0 && (config->OrangeTradeGoodsBin.size() > 0) && (orangeTGoods < config->GetMaximum(AHB_ORANGE_TG)))
         {
             itemID = getElement(config->OrangeTradeGoodsBin, urand(0, config->OrangeTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 12;
+            orangeTGoods++;
         }
 
         // Artifact
@@ -1142,12 +1172,15 @@ std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRari
         {
             itemID = getElement(config->YellowItemsBin, urand(0, config->YellowItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 6;
+            yellowItems++;
         }
 
         if (itemID == 0 && (config->YellowTradeGoodsBin.size() > 0) && (yellowTGoods < config->GetMaximum(AHB_YELLOW_TG)))
         {
             itemID = getElement(config->YellowTradeGoodsBin, urand(0, config->YellowTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = 13;
+            yellowTGoods++;
+
         }
 
         if (itemID == 0)
@@ -1167,7 +1200,8 @@ std::tuple<uint32, int32, std::vector<uint32>> AuctionHouseBot::SelectItemByRari
         itemCounts[choice]++;
     }
 
-    return std::make_tuple(itemID, choice, itemCounts);
+    return std::make_tuple(itemID, choice, itemCounts, greyItems, greyTGoods, whiteItems, whiteTGoods, greenItems, greenTGoods, blueItems, blueTGoods, purpleItems, purpleTGoods, orangeItems, orangeTGoods, yellowItems, yellowTGoods);
+
 }
 
 // =============================================================================

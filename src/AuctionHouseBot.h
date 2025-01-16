@@ -84,10 +84,21 @@ public:
     ObjectGuid::LowType GetAHBplayerGUID() { return _id; };
 
     std::vector<uint32> GetItemsToSell(AHBConfig* config, ObjectGuid botGuid);
-    std::tuple<uint32, int32, std::vector<uint32>> SelectItemByRarity(AHBConfig* config, AuctionHouseObject* auctionHouse, std::vector<uint32> itemCounts);
     bool IsItemListedByBot(uint32 itemID, uint32 ahID, ObjectGuid botGuid);
     bool IsItemInAuctionHouse(uint32 itemID, uint32 ahID);
     std::vector<uint32> GetAllItemIDs(uint32 ahID);
+
+    std::tuple<uint32, int32, std::vector<uint32>, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32, uint32> SelectItemByRarity(
+    AHBConfig* config,
+    AuctionHouseObject* auctionHouse,
+    std::vector<uint32> itemCounts,
+    uint32 greyItems, uint32 greyTGoods,
+    uint32 whiteItems, uint32 whiteTGoods,
+    uint32 greenItems, uint32 greenTGoods,
+    uint32 blueItems, uint32 blueTGoods,
+    uint32 purpleItems, uint32 purpleTGoods,
+    uint32 orangeItems, uint32 orangeTGoods,
+    uint32 yellowItems, uint32 yellowTGoods);
 };
 
 std::string JoinGUIDs(const std::vector<uint32>& guids);
