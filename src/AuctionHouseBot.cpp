@@ -27,6 +27,10 @@
 #include "DatabaseEnv.h"
 #include "Config.h"
 #include "Player.h"
+#include "AuctionHouseSearcher.h"
+
+// Ensure that sAuctionHouseSearcher is declared
+extern AuctionHouseSearcher* sAuctionHouseSearcher;
 
 #include <algorithm>
 #include <random>
