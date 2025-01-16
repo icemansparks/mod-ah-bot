@@ -73,6 +73,8 @@ public:
 
     ObjectGuid::LowType GetAHBplayerGUID() { return _id; };
 
+    std::vector<uint32> GetItemsToSell(AHBConfig* config);
+    uint32 SelectItemByRarity(AHBConfig* config, AuctionHouseObject* auctionHouse, uint32& choice);
 };
 
 std::string JoinGUIDs(const std::vector<uint32>& guids);
