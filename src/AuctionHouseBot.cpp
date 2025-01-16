@@ -598,22 +598,31 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     // Determine the number of items to list
      if (totalAuctions < minItems)
     {
+
+        LOG_WARNING("module", "AHBot [{}]: minItems {} ", _id, minItems);
+        LOG_WARNING("module", "AHBot [{}]: Total auctions {} below minimum", _id, totalAuctions);
+        LOG_WARNING("module", "AHBot [{}]: minAuctionsPerBot: {} current_auctions: {}", _id, totalAuctions, auctions);
+
         // Add new auctions quickly until totalAuctions reach minItems
         uint32 maxItemsToList = minAuctionsPerBot - auctions;
+        LOG_WARNING("module", "AHBot [{}]: maxItemsToList: {}", _id, maxItemsToList);
 
         // Ensure maxItemsToList is less than or equal to minAuctionsPerBot
         if (maxItemsToList > minAuctionsPerBot)
         {
             maxItemsToList = minAuctionsPerBot;
         }
-        LOG_INFO("module", "AHBot [{}]: maxItemsToList: {}", _id, maxItemsToList);
-        LOG_INFO("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
+        LOG_WARNING("module", "AHBot [{}]: maxItemsToList: {}", _id, maxItemsToList);
+        LOG_WARNING("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
         items = urand(maxItemsToList, minAuctionsPerBot);
     }
     else
     {
         // Gradually increase the number of auctions with ItemsPerCycle
+        LOG_WARNING("module", "AHBot [{}]: Total auctions {} above minimum", _id, totalAuctions);
+        LOG_WARNING("module", "AHBot [{}]: maxAuctionsPerBot: {} current_auctions: {}", _id, maxAuctionsPerBot, auctions);
         uint32 maxItemsToList = maxAuctionsPerBot - auctions;
+        LOG_WARNING("module", "AHBot [{}]: maxItemsToList: {}", _id, maxItemsToList);
         items = config->ItemsPerCycle;
 
         if (items > maxItemsToList)
