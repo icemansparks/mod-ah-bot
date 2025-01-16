@@ -823,38 +823,52 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         uint64 buyoutPrice = 0;
         uint64 bidPrice    = 0;
         uint32 stackCount  = 1;
+        uint64 baseBuyoutPrice = 0;
+        uint64 baseBidPrice = 0;
 
         auto it = config->itemPriceOverrides.find(itemID);
         if (it != config->itemPriceOverrides.end())
         {
-            buyoutPrice = std::get<0>(it->second);
-            bidPrice = std::get<1>(it->second);
+            // Base prices are loaded from from the price override table in the database
+            baseBuyoutPrice = std::get<0>(it->second);
+            baseBidPrice = std::get<1>(it->second);
+
         }
         else
         {
+            // No price override was found, fall back to fixed default prices
             if (config->SellAtMarketPrice)
             {
-                buyoutPrice = config->GetItemPrice(itemID);
+                baseBuyoutPrice = config->GetItemPrice(itemID);
             }
 
-            if (buyoutPrice == 0)
+            if (baseBuyoutPrice == 0)
             {
                 if (config->SellMethod)
                 {
-                    buyoutPrice = prototype->BuyPrice;
+                    baseBuyoutPrice = prototype->BuyPrice;
                 }
                 else
                 {
-                    buyoutPrice = prototype->SellPrice;
+                    baseBuyoutPrice = prototype->SellPrice;
                 }
             }
 
-            buyoutPrice = buyoutPrice * urand(config->GetMinPrice(prototype->Quality), config->GetMaxPrice(prototype->Quality));
-            buyoutPrice = buyoutPrice / 100;
+            baseBuyoutPrice = baseBuyoutPrice * urand(config->GetMinPrice(prototype->Quality), config->GetMaxPrice(prototype->Quality));
+            baseBuyoutPrice = baseBuyoutPrice / 100;
 
-            bidPrice    = buyoutPrice * urand(config->GetMinBidPrice(prototype->Quality), config->GetMaxBidPrice(prototype->Quality));
-            bidPrice    = bidPrice / 100;
+            baseBidPrice    = baseBuyoutPrice * urand(config->GetMinBidPrice(prototype->Quality), config->GetMaxBidPrice(prototype->Quality));
+            baseBidPrice    = baseBidPrice / 100;
         }
+
+        // Introduce randomness around the baseline values with a range of -10% to +10%
+        int32 buyoutDeviation = urand(-10, 10);
+        int32 bidDeviation = urand(-10, 10);
+
+        // Adjust the baseline values with random deviation
+        buyoutPrice = baseBuyoutPrice * (1 + buyoutDeviation / 100.0);
+        bidPrice = baseBidPrice * (1 + bidDeviation / 100.0);
+
 
         // Determine the stack size
         if (config->GetMaxStack(prototype->Quality) > 1 && item->GetMaxStackCount() > 1)
