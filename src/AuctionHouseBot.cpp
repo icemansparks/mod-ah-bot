@@ -911,7 +911,7 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
     // Prioritize items with price overrides that are not listed by the bot yet
     for (const auto& [itemID, prices] : config->itemPriceOverrides)
     {
-        if (!IsItemListedByBot(itemID))
+        if (!IsItemListedByBot(itemID, config->GetAHID()))
         {
             prioritizedItemIDs.push_back(itemID);
         }
@@ -929,9 +929,9 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
     // If there are still no items, fall back to items without overrides that are not in the auction house
     if (prioritizedItemIDs.empty())
     {
-        for (uint32 itemID : GetAllItemIDs())
+        for (uint32 itemID : GetAllItemIDs(config->GetAHID()))
         {
-            if (config->itemPriceOverrides.find(itemID) == config->itemPriceOverrides.end() && !IsItemInAuctionHouse(itemID))
+            if (config->itemPriceOverrides.find(itemID) == config->itemPriceOverrides.end() && !IsItemInAuctionHouse(itemID, config->GetAHID()))
             {
                 prioritizedItemIDs.push_back(itemID);
             }
@@ -941,7 +941,7 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
     // If there are still no items, fall back to random items without price overrides
     if (prioritizedItemIDs.empty())
     {
-        for (uint32 itemID : GetAllItemIDs())
+        for (uint32 itemID : GetAllItemIDs(config->GetAHID()))
         {
             if (config->itemPriceOverrides.find(itemID) == config->itemPriceOverrides.end())
             {
@@ -962,9 +962,9 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
 // Find out if item is listed by current bot
 // =============================================================================
 
-bool AuctionHouseBot::IsItemListedByBot(uint32 itemID)
+bool AuctionHouseBot::IsItemListedByBot(uint32 itemID, uint32 ahID)
 {
-    for (const auto& auction : sAuctionMgr->GetAuctionsMap())
+    for (const auto& auction : sAuctionMgr->GetAuctionsMap(ahID))
     {
         if (auction.second->item_template == itemID && auction.second->owner == GetAHBplayerGUID())
         {
@@ -978,9 +978,9 @@ bool AuctionHouseBot::IsItemListedByBot(uint32 itemID)
 // Find out if item is listed in the aution house
 // =============================================================================
 
-bool AuctionHouseBot::IsItemInAuctionHouse(uint32 itemID)
+bool AuctionHouseBot::IsItemInAuctionHouse(uint32 itemID, uint32 ahID)
 {
-    for (const auto& auction : sAuctionMgr->GetAuctionsMap())
+    for (const auto& auction : sAuctionMgr->GetAuctionsMap(ahID))
     {
         if (auction.second->item_template == itemID)
         {
@@ -994,7 +994,7 @@ bool AuctionHouseBot::IsItemInAuctionHouse(uint32 itemID)
 // GetAllItemIDs that are not disabled and can be listed in the auctionhouse
 // =============================================================================
 
-std::vector<uint32> AuctionHouseBot::GetAllItemIDs()
+std::vector<uint32> AuctionHouseBot::GetAllItemIDs(uint32 ahID)
 {
     std::vector<uint32> allItemIDs;
     std::set<uint32> disabledItems;
@@ -1019,7 +1019,7 @@ std::vector<uint32> AuctionHouseBot::GetAllItemIDs()
         uint32 itemID = itr->second.ItemId;
 
         // Check if the item is not in the disabled items list
-        if (disabledItems.find(itemID) == disabledItems.end() && !IsItemInAuctionHouse(itemID))
+        if (disabledItems.find(itemID) == disabledItems.end() && !IsItemInAuctionHouse(itemID, ahID))
         {
             allItemIDs.push_back(itemID);
         }
