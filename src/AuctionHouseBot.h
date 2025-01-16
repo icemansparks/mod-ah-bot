@@ -27,6 +27,16 @@
 #include "AuctionHouseBotConfig.h"
 #include "AuctionHouseSearcher.h"
 
+#include <vector>
+#include <set>
+#include <tuple>
+
+#include "DatabaseEnv.h"
+#include "Player.h"
+
+class AHBConfig;
+class AuctionHouseObject;
+
 struct AuctionEntry;
 class  Player;
 class  WorldSession;
