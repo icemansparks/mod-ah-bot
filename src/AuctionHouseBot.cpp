@@ -563,6 +563,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
     uint32 minItems = config->GetMinItems();
     uint32 maxItems = config->GetMaxItems();
+    uint32 maxItemsToList = 0;
 
     if (maxItems == 0 || totalAuctions >= maxItems)
     {
@@ -599,7 +600,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
      if (totalAuctions < minItems)
     {
         // Add new auctions quickly until totalAuctions reach minItems
-        uint32 maxItemsToList = minAuctionsPerBot - auctions;
+        maxItemsToList = minAuctionsPerBot - auctions;
 
         // Ensure maxItemsToList is less than or equal to minAuctionsPerBot
         if (maxItemsToList > minAuctionsPerBot)
@@ -612,7 +613,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     else
     {
         // Gradually increase the number of auctions with ItemsPerCycle
-        uint32 maxItemsToList = maxAuctionsPerBot - auctions;
+        maxItemsToList = maxAuctionsPerBot - auctions;
         items = config->ItemsPerCycle;
 
         if (items > maxItemsToList)
@@ -689,7 +690,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         // Select item by rarity
         uint32 choice = 0;
-        uint32 itemID = 0;
         uint32 loopbreaker = 0;
 
         while (itemID == 0 && loopbreaker <= AUCTION_HOUSE_BOT_LOOP_BREAKER)
