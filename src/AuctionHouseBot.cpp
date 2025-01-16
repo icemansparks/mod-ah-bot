@@ -966,7 +966,7 @@ bool AuctionHouseBot::IsItemListedByBot(uint32 itemID)
 {
     for (const auto& auction : sAuctionMgr->GetAuctionsMap())
     {
-        if (auction->item_template == itemID && auction->owner == GetAHBplayerGUID())
+        if (auction.second->item_template == itemID && auction.second->owner == GetAHBplayerGUID())
         {
             return true;
         }
@@ -982,7 +982,7 @@ bool AuctionHouseBot::IsItemInAuctionHouse(uint32 itemID)
 {
     for (const auto& auction : sAuctionMgr->GetAuctionsMap())
     {
-        if (auction->item_template == itemID)
+        if (auction.second->item_template == itemID)
         {
             return true;
         }
