@@ -964,7 +964,14 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
 
 bool AuctionHouseBot::IsItemListedByBot(uint32 itemID, uint32 ahID)
 {
-    for (const auto& auction : sAuctionMgr->GetAuctionsMap(ahID))
+    AuctionHouseObject* auctionHouse = sAuctionMgr->GetAuctionsMap(ahID);
+    if (!auctionHouse)
+    {
+        return false;
+    }
+
+    const AuctionEntryMap& auctions = auctionHouse->GetAuctions();
+    for (const auto& auction : auctions)
     {
         if (auction.second->item_template == itemID && auction.second->owner == GetAHBplayerGUID())
         {
@@ -980,7 +987,14 @@ bool AuctionHouseBot::IsItemListedByBot(uint32 itemID, uint32 ahID)
 
 bool AuctionHouseBot::IsItemInAuctionHouse(uint32 itemID, uint32 ahID)
 {
-    for (const auto& auction : sAuctionMgr->GetAuctionsMap(ahID))
+    AuctionHouseObject* auctionHouse = sAuctionMgr->GetAuctionsMap(ahID);
+    if (!auctionHouse)
+    {
+        return false;
+    }
+
+    const AuctionEntryMap& auctions = auctionHouse->GetAuctions();
+    for (const auto& auction : auctions)
     {
         if (auction.second->item_template == itemID)
         {
