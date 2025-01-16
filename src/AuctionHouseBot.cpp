@@ -32,6 +32,9 @@
 AuctionHouseSearcher* sAuctionHouseSearcher = nullptr;
 
 #include <algorithm>
+#include <vector>
+
+#include <set>
 #include <random>
 #include <sstream>
 
