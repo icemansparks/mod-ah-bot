@@ -972,6 +972,26 @@ bool AuctionHouseBot::IsItemListedByBot(uint32 itemID)
     return false;
 }
 
+// =============================================================================
+// Find out if item is listed in the aution house
+// =============================================================================
+
+bool AuctionHouseBot::IsItemInAuctionHouse(uint32 itemID)
+{
+    for (const auto& auction : sAuctionMgr->GetAuctions())
+    {
+        if (auction->item_template == itemID)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// =============================================================================
+// GetAllItemIDs that are not disabled and can be listed in the auctionhouse
+// =============================================================================
+
 std::vector<uint32> AuctionHouseBot::GetAllItemIDs()
 {
     std::vector<uint32> allItemIDs;
@@ -997,7 +1017,7 @@ std::vector<uint32> AuctionHouseBot::GetAllItemIDs()
         uint32 itemID = itr->second.ItemId;
 
         // Check if the item is not in the disabled items list
-        if (disabledItems.find(itemID) == disabledItems.end())
+        if (disabledItems.find(itemID) == disabledItems.end() && !IsItemInAuctionHouse(itemID))
         {
             allItemIDs.push_back(itemID);
         }
