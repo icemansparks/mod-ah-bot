@@ -990,6 +990,9 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Base prices are loaded from from the price override table in the database
             baseBuyoutPrice = std::get<0>(it->second);
             baseBidPrice = std::get<1>(it->second);
+            LOG_INFO("module", "AHBot [{}]: Price override found for item {}", _id, itemID);
+            LOG_INFO("module", "AHBot [{}]: Base buyout price: {}", _id, baseBuyoutPrice);
+            LOG_INFO("module", "AHBot [{}]: Base bid price: {}", _id, baseBidPrice);
 
         }
         else
@@ -1020,13 +1023,20 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         }
 
         // Introduce randomness around the baseline values with a range of -10% to +10%
+        LOG_INFO("module", "AHBot [{}]: Base buyout price: {}", _id, baseBuyoutPrice);
+        LOG_INFO("module", "AHBot [{}]: Base bid price: {}", _id, baseBidPrice);
+
+        LOG_INFO("module", "AHBot [{}]: right before deviation calculation", _id);
         int32 buyoutDeviation = urand(-10, 10);
+        LOG_INFO("module", "AHBot [{}]: Buyout deviation: {}", _id, buyoutDeviation);
         int32 bidDeviation = urand(-10, 10);
+        LOG_INFO("module", "AHBot [{}]: Bid deviation: {}", _id, bidDeviation);
 
         // Adjust the baseline values with random deviation
         buyoutPrice = baseBuyoutPrice * (1 + buyoutDeviation / 100.0);
         bidPrice = baseBidPrice * (1 + bidDeviation / 100.0);
-
+        LOG_INFO("module", "AHBot [{}]: FINAL buyout price: {}", _id, buyoutPrice);
+        LOG_INFO("module", "AHBot [{}]: FINAL bid price: {}", _id, bidPrice);
 
         // Determine the stack size
         if (config->GetMaxStack(prototype->Quality) > 1 && item->GetMaxStackCount() > 1)
