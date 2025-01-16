@@ -664,7 +664,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         }
 
         // Select item by rarity
-        uint32 choice;
+        uint32 choice = 0;
         std::tie(itemID, choice, itemCounts, greyItems, greyTGoods, whiteItems, whiteTGoods, greenItems, greenTGoods, blueItems, blueTGoods, purpleItems, purpleTGoods, orangeItems, orangeTGoods, yellowItems, yellowTGoods) = SelectItemByRarity(
             config, auctionHouse, itemCounts,
             greyItems, greyTGoods,
@@ -1201,7 +1201,6 @@ std::tuple<uint32, int32, std::vector<uint32>, uint32, uint32, uint32, uint32, u
     }
 
     return std::make_tuple(itemID, choice, itemCounts, greyItems, greyTGoods, whiteItems, whiteTGoods, greenItems, greenTGoods, blueItems, blueTGoods, purpleItems, purpleTGoods, orangeItems, orangeTGoods, yellowItems, yellowTGoods);
-
 }
 
 // =============================================================================
