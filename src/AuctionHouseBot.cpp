@@ -698,7 +698,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         {
             loopbreaker++;
 
-             // Log the sizes of all bins
+            // Log the sizes of all bins
+            /*
             LOG_INFO("module", "AHBot [{}]: GreyItemsBin.size: {}", _id, config->GreyItemsBin.size());
             LOG_INFO("module", "AHBot [{}]: GreyTradeGoodsBin.size: {}", _id, config->GreyTradeGoodsBin.size());
             LOG_INFO("module", "AHBot [{}]: WhiteItemsBin.size: {}", _id, config->WhiteItemsBin.size());
@@ -713,11 +714,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             LOG_INFO("module", "AHBot [{}]: OrangeTradeGoodsBin.size: {}", _id, config->OrangeTradeGoodsBin.size());
             LOG_INFO("module", "AHBot [{}]: YellowItemsBin.size: {}", _id, config->YellowItemsBin.size());
             LOG_INFO("module", "AHBot [{}]: YellowTradeGoodsBin.size: {}", _id, config->YellowTradeGoodsBin.size());
+            */
 
              // Poor
             if ((config->GreyItemsBin.size() > 0) && (greyItems < config->GetMaximum(AHB_GREY_I)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->GreyItemsBin.size: {}", _id, config->GreyItemsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->GreyItemsBin.size: {}", _id, config->GreyItemsBin.size());
                 if (config->GreyItemsBin.size() > 1)
                 {
                     itemID = getElement(config->GreyItemsBin, urand(0, config->GreyItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -731,7 +733,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
             if (itemID == 0 && (config->GreyTradeGoodsBin.size() > 0) && (greyTGoods < config->GetMaximum(AHB_GREY_TG)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->GreyTradeGoodsBin.size: {}", _id, config->GreyTradeGoodsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->GreyTradeGoodsBin.size: {}", _id, config->GreyTradeGoodsBin.size());
                 if (config->GreyTradeGoodsBin.size() > 1)
                 {
                     itemID = getElement(config->GreyTradeGoodsBin, urand(0, config->GreyTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -746,7 +748,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Normal
             if (itemID == 0 && (config->WhiteItemsBin.size() > 0) && (whiteItems < config->GetMaximum(AHB_WHITE_I)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->WhiteItemsBin.size: {}", _id, config->WhiteItemsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->WhiteItemsBin.size: {}", _id, config->WhiteItemsBin.size());
                 if (config->WhiteItemsBin.size() > 1)
                 {
                     itemID = getElement(config->WhiteItemsBin, urand(0, config->WhiteItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -760,7 +762,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
             if (itemID == 0 && (config->WhiteTradeGoodsBin.size() > 0) && (whiteTGoods < config->GetMaximum(AHB_WHITE_TG)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->WhiteTradeGoodsBin.size: {}", _id, config->WhiteTradeGoodsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->WhiteTradeGoodsBin.size: {}", _id, config->WhiteTradeGoodsBin.size());
                 if (config->WhiteTradeGoodsBin.size() > 1)
                 {
                     itemID = getElement(config->WhiteTradeGoodsBin, urand(0, config->WhiteTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -775,7 +777,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Uncommon
             if (itemID == 0 && (config->GreenItemsBin.size() > 0) && (greenItems < config->GetMaximum(AHB_GREEN_I)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->GreenItemsBin.size: {}", _id, config->GreenItemsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->GreenItemsBin.size: {}", _id, config->GreenItemsBin.size());
                 if (config->GreenItemsBin.size() > 1)
                 {
                     itemID = getElement(config->GreenItemsBin, urand(0, config->GreenItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -789,7 +791,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
             if (itemID == 0 && (config->GreenTradeGoodsBin.size() > 0) && (greenTGoods < config->GetMaximum(AHB_GREEN_TG)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->GreenTradeGoodsBin.size: {}", _id, config->GreenTradeGoodsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->GreenTradeGoodsBin.size: {}", _id, config->GreenTradeGoodsBin.size());
                 if (config->GreenTradeGoodsBin.size() > 1)
                 {
                     itemID = getElement(config->GreenTradeGoodsBin, urand(0, config->GreenTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -804,7 +806,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Rare
             if (itemID == 0 && (config->BlueItemsBin.size() > 0) && (blueItems < config->GetMaximum(AHB_BLUE_I)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->BlueItemsBin.size: {}", _id, config->BlueItemsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->BlueItemsBin.size: {}", _id, config->BlueItemsBin.size());
                 if (config->BlueItemsBin.size() > 1)
                 {
                     itemID = getElement(config->BlueItemsBin, urand(0, config->BlueItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -818,7 +820,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
             if (itemID == 0 && (config->BlueTradeGoodsBin.size() > 0) && (blueTGoods < config->GetMaximum(AHB_BLUE_TG)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->BlueTradeGoodsBin.size: {}", _id, config->BlueTradeGoodsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->BlueTradeGoodsBin.size: {}", _id, config->BlueTradeGoodsBin.size());
                 if (config->BlueTradeGoodsBin.size() > 1)
                 {
                     itemID = getElement(config->BlueTradeGoodsBin, urand(0, config->BlueTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -833,7 +835,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Epic
             if (itemID == 0 && (config->PurpleItemsBin.size() > 0) && (purpleItems < config->GetMaximum(AHB_PURPLE_I)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->PurpleItemsBin.size: {}", _id, config->PurpleItemsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->PurpleItemsBin.size: {}", _id, config->PurpleItemsBin.size());
                 if (config->PurpleItemsBin.size() > 1)
                 {
                     itemID = getElement(config->PurpleItemsBin, urand(0, config->PurpleItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -847,7 +849,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
             if (itemID == 0 && (config->PurpleTradeGoodsBin.size() > 0) && (purpleTGoods < config->GetMaximum(AHB_PURPLE_TG)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->PurpleTradeGoodsBin.size: {}", _id, config->PurpleTradeGoodsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->PurpleTradeGoodsBin.size: {}", _id, config->PurpleTradeGoodsBin.size());
                 if (config->PurpleTradeGoodsBin.size() > 1)
                 {
                     itemID = getElement(config->PurpleTradeGoodsBin, urand(0, config->PurpleTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -862,7 +864,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Legendary
             if (itemID == 0 && (config->OrangeItemsBin.size() > 0) && (orangeItems < config->GetMaximum(AHB_ORANGE_I)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->OrangeItemsBin.size: {}", _id, config->OrangeItemsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->OrangeItemsBin.size: {}", _id, config->OrangeItemsBin.size());
                 if (config->OrangeItemsBin.size() > 1)
                 {
                     itemID = getElement(config->OrangeItemsBin, urand(0, config->OrangeItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -876,7 +878,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
             if (itemID == 0 && (config->OrangeTradeGoodsBin.size() > 0) && (orangeTGoods < config->GetMaximum(AHB_ORANGE_TG)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->OrangeTradeGoodsBin.size: {}", _id, config->OrangeTradeGoodsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->OrangeTradeGoodsBin.size: {}", _id, config->OrangeTradeGoodsBin.size());
                 if (config->OrangeTradeGoodsBin.size() > 1)
                 {
                     itemID = getElement(config->OrangeTradeGoodsBin, urand(0, config->OrangeTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -891,7 +893,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Artifact
             if (itemID == 0 && (config->YellowItemsBin.size() > 0) && (yellowItems < config->GetMaximum(AHB_YELLOW_I)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->YellowItemsBin.size: {}", _id, config->YellowItemsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->YellowItemsBin.size: {}", _id, config->YellowItemsBin.size());
                 if (config->YellowItemsBin.size() > 1)
                 {
                     itemID = getElement(config->YellowItemsBin, urand(0, config->YellowItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -905,7 +907,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
             if (itemID == 0 && (config->YellowTradeGoodsBin.size() > 0) && (yellowTGoods < config->GetMaximum(AHB_YELLOW_TG)))
             {
-                LOG_INFO("module", "AHBot [{}]: config->YellowTradeGoodsBin.size: {}", _id, config->YellowTradeGoodsBin.size());
+                //LOG_INFO("module", "AHBot [{}]: config->YellowTradeGoodsBin.size: {}", _id, config->YellowTradeGoodsBin.size());
                 if (config->YellowTradeGoodsBin.size() > 1)
                 {
                     itemID = getElement(config->YellowTradeGoodsBin, urand(0, config->YellowTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
@@ -999,10 +1001,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             // Base prices are loaded from from the price override table in the database
             baseBuyoutPrice = std::get<0>(it->second);
             baseBidPrice = std::get<1>(it->second);
-            LOG_INFO("module", "AHBot [{}]: Price override found for item {}", _id, itemID);
-            LOG_INFO("module", "AHBot [{}]: Base buyout price: {}", _id, baseBuyoutPrice);
-            LOG_INFO("module", "AHBot [{}]: Base bid price: {}", _id, baseBidPrice);
-
         }
         else
         {
@@ -1032,20 +1030,14 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         }
 
         // Introduce randomness around the baseline values with a range of -10% to +10%
-        LOG_INFO("module", "AHBot [{}]: Base buyout price: {}", _id, baseBuyoutPrice);
-        LOG_INFO("module", "AHBot [{}]: Base bid price: {}", _id, baseBidPrice);
-
-        LOG_INFO("module", "AHBot [{}]: right before deviation calculation", _id);
         int32 buyoutDeviation = urand(0, 20) - 10;
-        LOG_INFO("module", "AHBot [{}]: Buyout deviation: {}", _id, buyoutDeviation);
         int32 bidDeviation = urand(0, 20) - 10;
-        LOG_INFO("module", "AHBot [{}]: Bid deviation: {}", _id, bidDeviation);
 
         // Adjust the baseline values with random deviation
         buyoutPrice = baseBuyoutPrice * (1 + buyoutDeviation / 100.0);
         bidPrice = baseBidPrice * (1 + bidDeviation / 100.0);
-        LOG_INFO("module", "AHBot [{}]: FINAL buyout price: {}", _id, buyoutPrice);
-        LOG_INFO("module", "AHBot [{}]: FINAL bid price: {}", _id, bidPrice);
+        //LOG_INFO("module", "AHBot [{}]: FINAL buyout price: {}", _id, buyoutPrice);
+        //LOG_INFO("module", "AHBot [{}]: FINAL bid price: {}", _id, bidPrice);
 
         // Determine the stack size
         if (config->GetMaxStack(prototype->Quality) > 1 && item->GetMaxStackCount() > 1)
