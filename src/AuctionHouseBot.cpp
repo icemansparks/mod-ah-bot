@@ -29,8 +29,7 @@
 #include "Player.h"
 #include "AuctionHouseSearcher.h"
 
-// Ensure that sAuctionHouseSearcher is declared
-extern AuctionHouseSearcher* sAuctionHouseSearcher;
+AuctionHouseSearcher* sAuctionHouseSearcher = nullptr;
 
 #include <algorithm>
 #include <random>

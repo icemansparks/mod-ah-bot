@@ -25,12 +25,15 @@
 #include "AuctionHouseMgr.h"
 #include "AuctionHouseBotCommon.h"
 #include "AuctionHouseBotConfig.h"
+#include "AuctionHouseSearcher.h"
 
 struct AuctionEntry;
 class  Player;
 class  WorldSession;
 
 #define AUCTION_HOUSE_BOT_LOOP_BREAKER 32
+
+extern AuctionHouseSearcher* sAuctionHouseSearcher;
 
 class AuctionHouseBot
 {
