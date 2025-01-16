@@ -605,6 +605,39 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     // Use the max stack size configuration value
     uint32 maxStackSize = config->GetMaxStackSize();
 
+    // Retrieve the configuration for this run
+    uint32 greyTGcount   = config->GetMaximum(AHB_GREY_TG);
+    uint32 whiteTGcount  = config->GetMaximum(AHB_WHITE_TG);
+    uint32 greenTGcount  = config->GetMaximum(AHB_GREEN_TG);
+    uint32 blueTGcount   = config->GetMaximum(AHB_BLUE_TG);
+    uint32 purpleTGcount = config->GetMaximum(AHB_PURPLE_TG);
+    uint32 orangeTGcount = config->GetMaximum(AHB_ORANGE_TG);
+    uint32 yellowTGcount = config->GetMaximum(AHB_YELLOW_TG);
+
+    uint32 greyIcount    = config->GetMaximum(AHB_GREY_I);
+    uint32 whiteIcount   = config->GetMaximum(AHB_WHITE_I);
+    uint32 greenIcount   = config->GetMaximum(AHB_GREEN_I);
+    uint32 blueIcount    = config->GetMaximum(AHB_BLUE_I);
+    uint32 purpleIcount  = config->GetMaximum(AHB_PURPLE_I);
+    uint32 orangeIcount  = config->GetMaximum(AHB_ORANGE_I);
+    uint32 yellowIcount  = config->GetMaximum(AHB_YELLOW_I);
+
+    uint32 greyTGoods    = config->GetItemCounts(AHB_GREY_TG);
+    uint32 whiteTGoods   = config->GetItemCounts(AHB_WHITE_TG);
+    uint32 greenTGoods   = config->GetItemCounts(AHB_GREEN_TG);
+    uint32 blueTGoods    = config->GetItemCounts(AHB_BLUE_TG);
+    uint32 purpleTGoods  = config->GetItemCounts(AHB_PURPLE_TG);
+    uint32 orangeTGoods  = config->GetItemCounts(AHB_ORANGE_TG);
+    uint32 yellowTGoods  = config->GetItemCounts(AHB_YELLOW_TG);
+
+    uint32 greyItems     = config->GetItemCounts(AHB_GREY_I);
+    uint32 whiteItems    = config->GetItemCounts(AHB_WHITE_I);
+    uint32 greenItems    = config->GetItemCounts(AHB_GREEN_I);
+    uint32 blueItems     = config->GetItemCounts(AHB_BLUE_I);
+    uint32 purpleItems   = config->GetItemCounts(AHB_PURPLE_I);
+    uint32 orangeItems   = config->GetItemCounts(AHB_ORANGE_I);
+    uint32 yellowItems   = config->GetItemCounts(AHB_YELLOW_I);
+
     std::vector<uint32> itemsToSell;
     itemsToSell = GetItemsToSell(config);
 
@@ -622,7 +655,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         uint32 choice      = 0;
 
         // Select item by rarity
-        auto [selectedItemID, choice] = SelectItemByRarity(config, auctionHouse);
+        auto [selectedItemID, choice] = SelectItemByRarity(config, auctionHouse, greyItems, whiteItems, greenItems, blueItems, purpleItems, orangeItems, yellowItems, greyTGoods, whiteTGoods, greenTGoods, blueTGoods, purpleTGoods, orangeTGoods, yellowTGoods);
 
         if (itemID == 0)
         {
@@ -922,41 +955,8 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config)
 // Select random item by rarity
 // =============================================================================
 
-uint32 AuctionHouseBot::SelectItemByRarity(AHBConfig* config, AuctionHouseObject* auctionHouse)
+std::pair<uint32, uint32> AuctionHouseBot::SelectItemByRarity(AHBConfig* config, AuctionHouseObject* auctionHouse, uint32& greyItems, uint32& whiteItems, uint32& greenItems, uint32& blueItems, uint32& purpleItems, uint32& orangeItems, uint32& yellowItems, uint32& greyTGoods, uint32& whiteTGoods, uint32& greenTGoods, uint32& blueTGoods, uint32& purpleTGoods, uint32& orangeTGoods, uint32& yellowTGoods)
 {
-    // Retrieve the configuration for this run
-    uint32 greyTGcount   = config->GetMaximum(AHB_GREY_TG);
-    uint32 whiteTGcount  = config->GetMaximum(AHB_WHITE_TG);
-    uint32 greenTGcount  = config->GetMaximum(AHB_GREEN_TG);
-    uint32 blueTGcount   = config->GetMaximum(AHB_BLUE_TG);
-    uint32 purpleTGcount = config->GetMaximum(AHB_PURPLE_TG);
-    uint32 orangeTGcount = config->GetMaximum(AHB_ORANGE_TG);
-    uint32 yellowTGcount = config->GetMaximum(AHB_YELLOW_TG);
-
-    uint32 greyIcount    = config->GetMaximum(AHB_GREY_I);
-    uint32 whiteIcount   = config->GetMaximum(AHB_WHITE_I);
-    uint32 greenIcount   = config->GetMaximum(AHB_GREEN_I);
-    uint32 blueIcount    = config->GetMaximum(AHB_BLUE_I);
-    uint32 purpleIcount  = config->GetMaximum(AHB_PURPLE_I);
-    uint32 orangeIcount  = config->GetMaximum(AHB_ORANGE_I);
-    uint32 yellowIcount  = config->GetMaximum(AHB_YELLOW_I);
-
-    uint32 greyTGoods    = config->GetItemCounts(AHB_GREY_TG);
-    uint32 whiteTGoods   = config->GetItemCounts(AHB_WHITE_TG);
-    uint32 greenTGoods   = config->GetItemCounts(AHB_GREEN_TG);
-    uint32 blueTGoods    = config->GetItemCounts(AHB_BLUE_TG);
-    uint32 purpleTGoods  = config->GetItemCounts(AHB_PURPLE_TG);
-    uint32 orangeTGoods  = config->GetItemCounts(AHB_ORANGE_TG);
-    uint32 yellowTGoods  = config->GetItemCounts(AHB_YELLOW_TG);
-
-    uint32 greyItems     = config->GetItemCounts(AHB_GREY_I);
-    uint32 whiteItems    = config->GetItemCounts(AHB_WHITE_I);
-    uint32 greenItems    = config->GetItemCounts(AHB_GREEN_I);
-    uint32 blueItems     = config->GetItemCounts(AHB_BLUE_I);
-    uint32 purpleItems   = config->GetItemCounts(AHB_PURPLE_I);
-    uint32 orangeItems   = config->GetItemCounts(AHB_ORANGE_I);
-    uint32 yellowItems   = config->GetItemCounts(AHB_YELLOW_I);
-
     uint32 choice = 0;
     uint32 itemID = 0;
     uint32 loopbreaker = 0;
@@ -1067,7 +1067,7 @@ uint32 AuctionHouseBot::SelectItemByRarity(AHBConfig* config, AuctionHouseObject
         }
     }
 
-    return itemID;
+    return std::make_pair(itemID, choice);
 }
 
 // =============================================================================
