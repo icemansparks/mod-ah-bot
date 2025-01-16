@@ -248,12 +248,20 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         uint32 randBid = 0;
         if (possibleBids.size() > 0)
         {
-            randBid = urand(0, possibleBids.size() - 1);
+            if (possibleBids.size() > 1)
+            {
+                randBid = urand(0, possibleBids.size() - 1);
+            }
+            else
+            {
+                randBid = 0;
+            }
             LOG_INFO("module", "AHBot [{}]: Random bid: {}", _id, randBid);
         }
         else
         {
             LOG_ERROR("module", "AHBot: No possible bids available");
+            continue;
         }
 
         std::set<uint32>::iterator it = possibleBids.begin();
