@@ -1357,7 +1357,7 @@ void AuctionHouseBot::Update()
         // Alliance
         if (_allianceConfig)
         {
-             if ((( - _lastrun_a_sec_Sell) >= (_allianceConfig->GetAllianceSellingInterval() * MINUTE)) )
+             if (((_newrunSell - _lastrun_a_sec_Sell) >= (_allianceConfig->GetAllianceSellingInterval() * MINUTE)) )
             {
                 Sell(&_AHBplayer, _allianceConfig);
                 _lastrun_a_sec_Sell = _newrunSell;
