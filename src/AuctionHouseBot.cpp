@@ -1343,13 +1343,13 @@ void AuctionHouseBot::Update()
         // Alliance
         if (_allianceConfig)
         {
-             if ((( - _lastrun_a_sec_Sell) >= (_allianceConfig->GetBiddingInterval() * MINUTE)) && (_allianceConfig->GetBidsPerInterval() > 0))
+             if ((( - _lastrun_a_sec_Sell) >= (_allianceConfig->GetAllianceSellingInterval() * MINUTE)) )
             {
                 Sell(&_AHBplayer, _allianceConfig);
                 _lastrun_a_sec_Sell = _newrunSell;
             }
 
-            if (((_newrunBuy - _lastrun_a_sec_Buy) >= (_allianceConfig->GetBiddingInterval() * MINUTE)) && (_allianceConfig->GetBidsPerInterval() > 0))
+            if (((_newrunBuy - _lastrun_a_sec_Buy) >= (_allianceConfig->GetAllianceBiddingInterval() * MINUTE)) && (_allianceConfig->GetAllianceBidsPerInterval() > 0))
             {
                 Buy(&_AHBplayer, _allianceConfig, &_session);
                 _lastrun_a_sec_Buy = _newrunBuy;
@@ -1359,13 +1359,13 @@ void AuctionHouseBot::Update()
         // Horde
         if (_hordeConfig)
         {
-             if (((_newrunSell - _lastrun_a_sec_Sell) >= (_hordeConfig->GetBiddingInterval() * MINUTE)) && (_hordeConfig->GetBidsPerInterval() > 0))
+             if (((_newrunSell - _lastrun_a_sec_Sell) >= (_hordeConfig->GetHordeBiddingInterval() * MINUTE)) )
             {
                 Sell(&_AHBplayer, _hordeConfig);
                 _lastrun_a_sec_Sell = _newrunSell;
             }
 
-            if (((_newrunBuy - _lastrun_h_sec_Buy) >= (_hordeConfig->GetBiddingInterval() * MINUTE)) && (_hordeConfig->GetBidsPerInterval() > 0))
+            if (((_newrunBuy - _lastrun_h_sec_Buy) >= (_hordeConfig->GetHordeBiddingInterval() * MINUTE)) && (_hordeConfig->GetHordeBidsPerInterval() > 0))
             {
                 Buy(&_AHBplayer, _hordeConfig, &_session);
                 _lastrun_h_sec_Buy = _newrunBuy;
@@ -1383,11 +1383,14 @@ void AuctionHouseBot::Update()
     // Neutral
     if (_neutralConfig)
     {
-        // original sell function call was here
-
-        if (((_newrunBuy - _lastrun_n_sec_Buy) >= (_neutralConfig->GetBiddingInterval() * MINUTE)) && (_neutralConfig->GetBidsPerInterval() > 0))
+        if (((_newrunSell - _lastrun_n_sec_Sell) >= (_neutralConfig->GetNeutralSellingInterval() * MINUTE)) )
         {
-            Sell(&_AHBplayer, _neutralConfig); //sell in same intervall as buying
+            Sell(&_AHBplayer, _neutralConfig);
+            _lastrun_n_sec_Sell = _newrunSell;
+        }
+
+        if (((_newrunBuy - _lastrun_n_sec_Buy) >= (_neutralConfig->GetNeutralBiddingInterval() * MINUTE)) && (_neutralConfig->GetNeutralBidsPerInterval() > 0))
+        {
             Buy(&_AHBplayer, _neutralConfig, &_session);
             _lastrun_n_sec_Buy = _newrunBuy;
         }

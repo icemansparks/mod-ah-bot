@@ -2057,6 +2057,21 @@ void AHBConfig::InitializeFromFile()
     maxItems                       = sConfigMgr->GetOption<uint32>("AuctionHouseBot.MaxItems"          , 5000);
     maxStackSize                   = sConfigMgr->GetOption<uint32>("AuctionHouseBot.MaxStackSize", 20);
 
+    // Load Bidding intervalls
+    _allianceBiddingInterval       = sConfigMgr->GetOption<uint32>("AllianceBiddingInterval", 10);
+    _allianceBidsPerInterval       = sConfigMgr->GetOption<uint32>("AllianceBidsPerInterval", 5);
+    _hordeBiddingInterval          = sConfigMgr->GetOption<uint32>("HordeBiddingInterval", 10);
+    _hordeBidsPerInterval          = sConfigMgr->GetOption<uint32>("HordeBidsPerInterval", 5);
+    _neutralBiddingInterval        = sConfigMgr->GetOption<uint32>("NeutralBiddingInterval", 10);
+    _neutralBidsPerInterval        = sConfigMgr->GetOption<uint32>("NeutralBidsPerInterval", 5);
+
+    // Load selling intervalls
+    _allianceSellingInterval       = sConfigMgr->GetOption<uint32>("AllianceSellingInterval", 10);5);
+    _hordeSellingInterval          = sConfigMgr->GetOption<uint32>("HordeSellingInterval", 10);
+    _neutralSellingInterval        = sConfigMgr->GetOption<uint32>("NeutralSellingInterval", 10);
+
+
+
 
     //
     // Flags: item types

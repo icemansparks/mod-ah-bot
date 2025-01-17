@@ -103,8 +103,21 @@ private:
     uint32 buyerPricePurple;
     uint32 buyerPriceOrange;
     uint32 buyerPriceYellow;
-    uint32 buyerBiddingInterval;
-    uint32 buyerBidsPerInterval;
+    //uint32 buyerBiddingInterval;
+    //uint32 buyerBidsPerInterval;
+
+    // Bid intervalls
+    uint32 _allianceBiddingInterval;
+    uint32 _allianceBidsPerInterval;
+    uint32 _hordeBiddingInterval;
+    uint32 _hordeBidsPerInterval;
+    uint32 _neutralBiddingInterval;
+    uint32 _neutralBidsPerInterval;
+
+    // Selling intervalls
+    uint32 _allianceSellingInterval;
+    uint32 _hordeSellingInterval;
+    uint32 _neutralSellingInterval;
 
     //
     // Amount of items to be sold in absolute values
@@ -353,11 +366,14 @@ public:
     void SetBuyerPrice(uint32 color, uint32 value);
     uint32 GetBuyerPrice(uint32 color);
 
-    void SetBiddingInterval(uint32 value);
-    uint32 GetBiddingInterval();
+    //void SetBiddingInterval(uint32 value);
+    //uint32 GetBiddingInterval();
 
-    void SetBidsPerInterval(uint32 value);
-    uint32 GetBidsPerInterval();
+    uint32 GetBiddingInterval() const { return _biddingInterval; }
+    uint32 GetBidsPerInterval() const { return _bidsPerInterval; }
+
+    //void SetBidsPerInterval(uint32 value);
+    //uint32 GetBidsPerInterval();
 
     void CalculatePercents();
     uint32 GetMaximum(uint32 color);
@@ -380,6 +396,16 @@ public:
 
     void LoadBotGUIDs();
     const std::vector<uint32>& GetBotGUIDs() const { return botGUIDs; }
+
+    uint32 GetAllianceBiddingInterval() const { return _allianceBiddingInterval; }
+    uint32 GetAllianceBidsPerInterval() const { return _allianceBidsPerInterval; }
+    uint32 GetHordeBiddingInterval() const { return _hordeBiddingInterval; }
+    uint32 GetHordeBidsPerInterval() const { return _hordeBidsPerInterval; }
+    uint32 GetNeutralBiddingInterval() const { return _neutralBiddingInterval; }
+    uint32 GetNeutralBidsPerInterval() const { return _neutralBidsPerInterval; }
+    uint32 GetAllianceSellingInterval() const { return _allianceSellingInterval; }
+    uint32 GetHordeSellingInterval() const { return _hordeSellingInterval; }
+    uint32 GetNeutralSellingInterval() const { return _neutralSellingInterval; }
 };
 
 //
