@@ -369,9 +369,6 @@ public:
     //void SetBiddingInterval(uint32 value);
     //uint32 GetBiddingInterval();
 
-    uint32 GetBiddingInterval() const { return _biddingInterval; }
-    uint32 GetBidsPerInterval() const { return _bidsPerInterval; }
-
     //void SetBidsPerInterval(uint32 value);
     //uint32 GetBidsPerInterval();
 
