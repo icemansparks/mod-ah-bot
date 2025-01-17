@@ -154,8 +154,8 @@ AHBConfig::AHBConfig(uint32 ahid, AHBConfig* conf)
     buyerPricePurple               = conf->buyerPricePurple;
     buyerPriceOrange               = conf->buyerPriceOrange;
     buyerPriceYellow               = conf->buyerPriceYellow;
-    buyerBiddingInterval           = conf->buyerBiddingInterval;
-    buyerBidsPerInterval           = conf->buyerBidsPerInterval;
+    //buyerBiddingInterval           = conf->buyerBiddingInterval;
+    //buyerBidsPerInterval           = conf->buyerBidsPerInterval;
 
     // This part is acquired thorugh initialization
     //
@@ -457,8 +457,8 @@ void AHBConfig::Reset()
     buyerPriceOrange               = 0;
     buyerPriceYellow               = 0;
 
-    buyerBiddingInterval           = 0;
-    buyerBidsPerInterval           = 0;
+    //buyerBiddingInterval           = 0;
+    //buyerBidsPerInterval           = 0;
 
     greytgp                        = 0;
     whitetgp                       = 0;
@@ -1556,16 +1556,6 @@ uint32 AHBConfig::GetBuyerPrice(uint32 color)
     }
 }
 
-void AHBConfig::SetBiddingInterval(uint32 value)
-{
-    buyerBiddingInterval = value;
-}
-
-uint32 AHBConfig::GetBiddingInterval()
-{
-    return buyerBiddingInterval;
-}
-
 void AHBConfig::CalculatePercents()
 {
     //
@@ -2462,13 +2452,14 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
     // Load bidding interval
     //
 
-    SetBiddingInterval(WorldDatabase.Query("SELECT buyerbiddinginterval FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
+    //SetBiddingInterval(WorldDatabase.Query("SELECT buyerbiddinginterval FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
 
     //
     // Load bids per interval
     //
 
-    SetBidsPerInterval(WorldDatabase.Query("SELECT buyerbidsperinterval FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
+    //SetBidsPerInterval(WorldDatabase.Query("SELECT buyerbidsperinterval FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
+    //disabled as we load from file now
 
     if (DebugOutConfig)
     {
@@ -2480,8 +2471,8 @@ void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
         LOG_INFO("module", "buyerPricePurple        = {}", GetBuyerPrice(AHB_PURPLE));
         LOG_INFO("module", "buyerPriceOrange        = {}", GetBuyerPrice(AHB_ORANGE));
         LOG_INFO("module", "buyerPriceYellow        = {}", GetBuyerPrice(AHB_YELLOW));
-        LOG_INFO("module", "buyerBiddingInterval    = {}", GetBiddingInterval());
-        LOG_INFO("module", "buyerBidsPerInterval    = {}", GetBidsPerInterval());
+        //LOG_INFO("module", "buyerBiddingInterval    = {}", GetBiddingInterval());
+        //LOG_INFO("module", "buyerBidsPerInterval    = {}", GetBidsPerInterval());
     }
 
     //
