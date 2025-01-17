@@ -2046,7 +2046,7 @@ void AHBConfig::InitializeFromFile()
     _neutralBidsPerInterval        = sConfigMgr->GetOption<uint32>("NeutralBidsPerInterval", 5);
 
     // Load selling intervalls
-    _allianceSellingInterval       = sConfigMgr->GetOption<uint32>("AllianceSellingInterval", 10);5);
+    _allianceSellingInterval       = sConfigMgr->GetOption<uint32>("AllianceSellingInterval", 10);
     _hordeSellingInterval          = sConfigMgr->GetOption<uint32>("HordeSellingInterval", 10);
     _neutralSellingInterval        = sConfigMgr->GetOption<uint32>("NeutralSellingInterval", 10);
 
