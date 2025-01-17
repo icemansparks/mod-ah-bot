@@ -1717,6 +1717,7 @@ void AuctionHouseBot::Commands(AHBotCommand command, uint32 ahMapID, uint32 col,
 
         break;
     }
+    /*
     case AHBotCommand::bidinterval:
     {
         char * param1      = strtok(args, " ");
@@ -1739,6 +1740,7 @@ void AuctionHouseBot::Commands(AHBotCommand command, uint32 ahMapID, uint32 col,
 
         break;
     }
+    */
     default:
         break;
     }
