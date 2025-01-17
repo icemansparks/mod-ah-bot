@@ -48,9 +48,13 @@ AuctionHouseBot::AuctionHouseBot(uint32 account, uint32 id)
     _account        = account;
     _id             = id;
 
-    _lastrun_a_sec  = time(NULL);
-    _lastrun_h_sec  = time(NULL);
-    _lastrun_n_sec  = time(NULL);
+    _lastrun_a_sec_Sell  = time(NULL);
+    _lastrun_h_sec_Sell  = time(NULL);
+    _lastrun_n_sec_Sell  = time(NULL);
+
+    _lastrun_a_sec_Buy  = time(NULL);
+    _lastrun_h_sec_Buy  = time(NULL);
+    _lastrun_n_sec_Buy  = time(NULL);
 
     _allianceConfig = NULL;
     _hordeConfig    = NULL;
@@ -682,7 +686,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         // Update Auctions count for current Bot
         auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
         //LOG_ERROR("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
-        LOG_ERROR("module", "AHBot [{}]: maxAuctionsPerBot: {} current_auctions: {}", _id, maxAuctionsPerBot, auctions);
+        //LOG_ERROR("module", "AHBot [{}]: maxAuctionsPerBot: {} current_auctions: {}", _id, maxAuctionsPerBot, auctions);
 
         if (auctions >= maxAuctionsPerBot)
         {
@@ -1313,7 +1317,8 @@ std::vector<uint32> AuctionHouseBot::GetAllItemIDs(uint32 ahID)
 
 void AuctionHouseBot::Update()
 {
-    time_t _newrun = time(NULL);
+    time_t _newrunBuy = time(NULL);
+    time_t _newrunSell = time(NULL);
 
     // If no configuration is associated, then stop here
     if (!_allianceConfig && !_hordeConfig && !_neutralConfig)
@@ -1338,26 +1343,32 @@ void AuctionHouseBot::Update()
         // Alliance
         if (_allianceConfig)
         {
-            //oriignal sell fucntion call was here
-
-            if (((_newrun - _lastrun_a_sec) >= (_allianceConfig->GetBiddingInterval() * MINUTE)) && (_allianceConfig->GetBidsPerInterval() > 0))
+             if ((( - _lastrun_a_sec_Sell) >= (_allianceConfig->GetBiddingInterval() * MINUTE)) && (_allianceConfig->GetBidsPerInterval() > 0))
             {
                 Sell(&_AHBplayer, _allianceConfig);
+                _lastrun_a_sec_Sell = _newrunSell;
+            }
+
+            if (((_newrunBuy - _lastrun_a_sec_Buy) >= (_allianceConfig->GetBiddingInterval() * MINUTE)) && (_allianceConfig->GetBidsPerInterval() > 0))
+            {
                 Buy(&_AHBplayer, _allianceConfig, &_session);
-                _lastrun_a_sec = _newrun;
+                _lastrun_a_sec_Buy = _newrunBuy;
             }
         }
 
         // Horde
         if (_hordeConfig)
         {
-            // original sell function call was here
-
-            if (((_newrun - _lastrun_h_sec) >= (_hordeConfig->GetBiddingInterval() * MINUTE)) && (_hordeConfig->GetBidsPerInterval() > 0))
+             if (((_newrunSell - _lastrun_a_sec_Sell) >= (_hordeConfig->GetBiddingInterval() * MINUTE)) && (_hordeConfig->GetBidsPerInterval() > 0))
             {
                 Sell(&_AHBplayer, _hordeConfig);
+                _lastrun_a_sec_Sell = _newrunSell;
+            }
+
+            if (((_newrunBuy - _lastrun_h_sec_Buy) >= (_hordeConfig->GetBiddingInterval() * MINUTE)) && (_hordeConfig->GetBidsPerInterval() > 0))
+            {
                 Buy(&_AHBplayer, _hordeConfig, &_session);
-                _lastrun_h_sec = _newrun;
+                _lastrun_h_sec_Buy = _newrunBuy;
             }
         }
 
@@ -1374,11 +1385,11 @@ void AuctionHouseBot::Update()
     {
         // original sell function call was here
 
-        if (((_newrun - _lastrun_n_sec) >= (_neutralConfig->GetBiddingInterval() * MINUTE)) && (_neutralConfig->GetBidsPerInterval() > 0))
+        if (((_newrunBuy - _lastrun_n_sec_Buy) >= (_neutralConfig->GetBiddingInterval() * MINUTE)) && (_neutralConfig->GetBidsPerInterval() > 0))
         {
-            Sell(&_AHBplayer, _neutralConfig);
+            Sell(&_AHBplayer, _neutralConfig); //sell in same intervall as buying
             Buy(&_AHBplayer, _neutralConfig, &_session);
-            _lastrun_n_sec = _newrun;
+            _lastrun_n_sec_Buy = _newrunBuy;
         }
     }
 
