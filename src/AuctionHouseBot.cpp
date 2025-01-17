@@ -162,7 +162,7 @@ uint32 AuctionHouseBot::getNofAuctions(AHBConfig* config, AuctionHouseObject* au
     }
 
     // Just the one handled by the bot
-    uint32 nofAuctions = 0;
+    uint32 count = 0;
 
     for (AuctionHouseObject::AuctionEntryMap::const_iterator itr = auctionHouse->GetAuctionsBegin(); itr != auctionHouse->GetAuctionsEnd(); ++itr)
     {
@@ -170,11 +170,11 @@ uint32 AuctionHouseBot::getNofAuctions(AHBConfig* config, AuctionHouseObject* au
 
         if (guid == Aentry->owner)
         {
-            nofAuctions++;
+            count++;
         }
     }
 
-    return nofAuctions;
+    return count;
 }
 
 uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse)
