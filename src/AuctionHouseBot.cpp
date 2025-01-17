@@ -243,10 +243,24 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
     uint32 guid = AHBplayer->GetGUID().GetCounter();
 
-    // Perform the operation for a maximum amount of bids attempts configured
-    for (uint32 count = 1; count <= config->GetBidsPerInterval(); ++count)
+    uint32 bidsPerInterval = 1;
+    if (config == _allianceConfig)
     {
-        LOG_INFO("module", "AHBot [{}]: Attempting bid {}/{}", _id, count, config->GetBidsPerInterval());
+        bidsPerInterval = _allianceConfig->GetAllianceBidsPerInterval();
+    }
+    else if (config == _hordeConfig)
+    {
+        bidsPerInterval = _hordeConfig->GetHordeBidsPerInterval();
+    }
+    else if (config == _neutralConfig)
+    {
+        bidsPerInterval = _neutralConfig->GetNeutralBidsPerInterval();
+    }
+
+    // Perform the operation for a maximum amount of bids attempts configured
+    for (uint32 count = 1; count <= bidsPerInterval; ++count)
+    {
+        LOG_INFO("module", "AHBot [{}]: Attempting bid {}/{}", _id, count, bidsPerInterval);
 
         // Choose a random auction from possible auctions
         uint32 randBid = 0;
