@@ -1938,16 +1938,6 @@ uint32 AHBConfig::GetItemCounts(uint32 color)
     }
 }
 
-void AHBConfig::SetBidsPerInterval(uint32 value)
-{
-    buyerBidsPerInterval = value;
-}
-
-uint32 AHBConfig::GetBidsPerInterval()
-{
-    return buyerBidsPerInterval;
-}
-
 void AHBConfig::UpdateItemStats(uint32 id, uint32 stackSize, uint64 buyout)
 {
     if (!stackSize)
