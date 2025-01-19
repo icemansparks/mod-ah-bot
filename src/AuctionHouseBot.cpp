@@ -1061,7 +1061,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         // Ideas: - Use a moving average of the last sales prices
         //        - Use a moving average of the last bids
         //        - Use a moving average of the last buyouts
-        // Make sure bidPrice is never higher than buyoutPrice
+        // Make sure bidPrice is never higher than buyoutPrice - we could also think about making buyout higher than bid instead of lowering bid.
         if (bidPrice > buyoutPrice)
         {
             bidPrice = buyoutPrice;
