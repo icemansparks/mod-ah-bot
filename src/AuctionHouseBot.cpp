@@ -1056,6 +1056,20 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         //LOG_INFO("module", "AHBot [{}]: FINAL buyout price: {}", _id, buyoutPrice);
         //LOG_INFO("module", "AHBot [{}]: FINAL bid price: {}", _id, bidPrice);
 
+        // TODO: Implement a more sophisticated pricing strategy
+        // For now, we just use the baseline prices with a random deviation
+        // Ideas: - Use a moving average of the last sales prices
+        //        - Use a moving average of the last bids
+        //        - Use a moving average of the last buyouts
+        // Make sure bidPrice is never higher than buyoutPrice
+        if (bidPrice > buyoutPrice)
+        {
+            bidPrice = buyoutPrice;
+            // reduce bid price by a random amount up to 5%
+            bidPrice = bidPrice * urand(95, 100) / 100;
+
+        }
+
         // Determine the stack size
         if (config->GetMaxStack(prototype->Quality) > 1 && item->GetMaxStackCount() > 1)
         {
