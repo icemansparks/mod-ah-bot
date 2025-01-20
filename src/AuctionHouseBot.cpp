@@ -587,7 +587,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     {
         if (config->DebugOutSeller)
         {
-            LOG_ERROR("module", "AHBot [{}]: Total auctions {} at or above maximum {} for AH: {}", _id, totalAuctions, maxItems, config->GetAHFID());
+            LOG_ERROR("module", "AHBot [{}]: Total auctions {} at or above maximum {} for AH: {}", _id, totalAuctions, maxItems, config->GetAHID());
         }
         return;
     }
@@ -1065,8 +1065,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         if (bidPrice > buyoutPrice)
         {
             bidPrice = buyoutPrice;
-            // reduce bid price by a random amount up to 5%
-            bidPrice = bidPrice * urand(95, 100) / 100;
+            // increase buyout price by a random amount up to 5%
+            buyoutPrice = buyoutPrice * urand(101, 105) / 100;
 
         }
 
