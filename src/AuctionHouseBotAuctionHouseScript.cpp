@@ -143,12 +143,9 @@ void AHBot_AuctionHouseScript::OnAuctionAdd(AuctionHouseObject* /*ah*/, AuctionE
 
 void AHBot_AuctionHouseScript::OnAuctionRemove(AuctionHouseObject* /*ah*/, AuctionEntry* auction)
 {
-    //
     // Get the configuration for the auction house
-    //
-
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromHouse(auction->GetHouseId());
-    AHBConfig*               config  = gNeutralConfig;
+    AHBConfig* config = gNeutralConfig;
 
     if (ahEntry)
     {
@@ -162,10 +159,7 @@ void AHBot_AuctionHouseScript::OnAuctionRemove(AuctionHouseObject* /*ah*/, Aucti
         }
     }
 
-    //
     // Consider only those auctions handled by the bots
-    //
-
     if (config->ConsiderOnlyBotAuctions)
     {
         if (gBotsId.find(auction->owner.GetCounter()) != gBotsId.end())
@@ -174,11 +168,10 @@ void AHBot_AuctionHouseScript::OnAuctionRemove(AuctionHouseObject* /*ah*/, Aucti
         }
     }
 
-    //
     // Verify if we can operate on the item
-    //
-
     Item* pItem = sAuctionMgr->GetAItem(auction->item_guid);
+
+    ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(auction->item_template);
 
     if (!pItem)
     {
@@ -187,20 +180,21 @@ void AHBot_AuctionHouseScript::OnAuctionRemove(AuctionHouseObject* /*ah*/, Aucti
             LOG_ERROR("module", "AHBot: Item {} doesn't exist, perhaps bought already?", auction->item_guid.ToString());
         }
 
+        // Decrement item counts even if the item does not exist
+        if (prototype)
+        {
+            config->DecItemCounts(prototype->Class, prototype->Quality);
+        }
+
         return;
     }
-
-    //
-    // Decrements
-    //
-
-    ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(auction->item_template);
 
     if (config->DebugOut)
     {
         LOG_INFO("module", "AHBot: ah={}, item={}, count={}", auction->GetHouseId(), auction->item_template, config->GetItemCounts(prototype->Quality));
     }
 
+    // Decrement item counts
     config->DecItemCounts(prototype->Class, prototype->Quality);
 }
 
@@ -264,7 +258,10 @@ void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, Aucti
 
 void AHBot_AuctionHouseScript::OnBeforeAuctionHouseMgrUpdate()
 {
+    //
     // For every registered bot, perform an update
+    //
+
     for (AuctionHouseBot* bot: gBots)
     {
         bot->Update();
