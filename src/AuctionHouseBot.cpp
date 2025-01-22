@@ -1345,8 +1345,7 @@ std::vector<uint32> AuctionHouseBot::GetAllItemIDs(uint32 ahID)
 
 void AuctionHouseBot::Update()
 {
-    time_t _newrunBuy = time(NULL);
-    time_t _newrunSell = time(NULL);
+    time_t currentTime = time(NULL);
 
     // If no configuration is associated, then stop here
     if (!_allianceConfig && !_hordeConfig && !_neutralConfig)
@@ -1354,8 +1353,8 @@ void AuctionHouseBot::Update()
         return;
     }
 
-    // Preprare for operation
-    //TODO: Use account name from defined account from configuration
+    // Prepare for operation
+    // TODO: Use account name from defined account from configuration
     std::string accountName = "AuctionHouseBot" + std::to_string(_account);
 
     WorldSession _session(_account, std::move(accountName), nullptr, SEC_PLAYER, sWorld->getIntConfig(CONFIG_EXPANSION), 0, LOCALE_enUS, 0, false, false, 0);
@@ -1371,56 +1370,49 @@ void AuctionHouseBot::Update()
         // Alliance
         if (_allianceConfig)
         {
-             if (((_newrunSell - _lastrun_a_sec_Sell) >= (_allianceConfig->GetAllianceSellingInterval() * MINUTE)) )
+            if ((currentTime - _lastrun_a_sec_Sell) >= (_allianceConfig->GetAllianceSellingInterval() * MINUTE))
             {
                 Sell(&_AHBplayer, _allianceConfig);
-                _lastrun_a_sec_Sell = _newrunSell;
+                _lastrun_a_sec_Sell = currentTime;
             }
 
-            if (((_newrunBuy - _lastrun_a_sec_Buy) >= (_allianceConfig->GetAllianceBiddingInterval() * MINUTE)) && (_allianceConfig->GetAllianceBidsPerInterval() > 0))
+            if ((currentTime - _lastrun_a_sec_Buy) >= (_allianceConfig->GetAllianceBiddingInterval() * MINUTE) && (_allianceConfig->GetAllianceBidsPerInterval() > 0))
             {
                 Buy(&_AHBplayer, _allianceConfig, &_session);
-                _lastrun_a_sec_Buy = _newrunBuy;
+                _lastrun_a_sec_Buy = currentTime;
             }
         }
 
         // Horde
         if (_hordeConfig)
         {
-             if (((_newrunSell - _lastrun_a_sec_Sell) >= (_hordeConfig->GetHordeBiddingInterval() * MINUTE)) )
+            if ((currentTime - _lastrun_h_sec_Sell) >= (_hordeConfig->GetHordeSellingInterval() * MINUTE))
             {
                 Sell(&_AHBplayer, _hordeConfig);
-                _lastrun_a_sec_Sell = _newrunSell;
+                _lastrun_h_sec_Sell = currentTime;
             }
 
-            if (((_newrunBuy - _lastrun_h_sec_Buy) >= (_hordeConfig->GetHordeBiddingInterval() * MINUTE)) && (_hordeConfig->GetHordeBidsPerInterval() > 0))
+            if ((currentTime - _lastrun_h_sec_Buy) >= (_hordeConfig->GetHordeBiddingInterval() * MINUTE) && (_hordeConfig->GetHordeBidsPerInterval() > 0))
             {
                 Buy(&_AHBplayer, _hordeConfig, &_session);
-                _lastrun_h_sec_Buy = _newrunBuy;
+                _lastrun_h_sec_Buy = currentTime;
             }
         }
 
-    }
-    else
-    {
-        //TODO: Implement two-side interaction
-        // Handle the case where two-side interaction is allowed
-        // Similar logic for alliance, horde, and neutral configurations
-    }
-
-    // Neutral
-    if (_neutralConfig)
-    {
-        if (((_newrunSell - _lastrun_n_sec_Sell) >= (_neutralConfig->GetNeutralSellingInterval() * MINUTE)) )
+        // Neutral
+        if (_neutralConfig)
         {
-            Sell(&_AHBplayer, _neutralConfig);
-            _lastrun_n_sec_Sell = _newrunSell;
-        }
+            if ((currentTime - _lastrun_n_sec_Sell) >= (_neutralConfig->GetNeutralSellingInterval() * MINUTE))
+            {
+                Sell(&_AHBplayer, _neutralConfig);
+                _lastrun_n_sec_Sell = currentTime;
+            }
 
-        if (((_newrunBuy - _lastrun_n_sec_Buy) >= (_neutralConfig->GetNeutralBiddingInterval() * MINUTE)) && (_neutralConfig->GetNeutralBidsPerInterval() > 0))
-        {
-            Buy(&_AHBplayer, _neutralConfig, &_session);
-            _lastrun_n_sec_Buy = _newrunBuy;
+            if ((currentTime - _lastrun_n_sec_Buy) >= (_neutralConfig->GetNeutralBiddingInterval() * MINUTE) && (_neutralConfig->GetNeutralBidsPerInterval() > 0))
+            {
+                Buy(&_AHBplayer, _neutralConfig, &_session);
+                _lastrun_n_sec_Buy = currentTime;
+            }
         }
     }
 
