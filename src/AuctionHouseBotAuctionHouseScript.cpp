@@ -254,6 +254,16 @@ void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, Aucti
     //
 
     config->UpdateItemStats(auction->item_template, auction->itemCount, auction->bid);
+
+    // Decrement item counts
+    ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(auction->item_template);
+
+    if (config->DebugOut)
+    {
+        LOG_INFO("module", "AHBot: ah={}, item={}, count={}", auction->GetHouseId(), auction->item_template, config->GetItemCounts(prototype->Quality));
+    }
+
+    config->DecItemCounts(prototype->Class, prototype->Quality);
 }
 
 void AHBot_AuctionHouseScript::OnBeforeAuctionHouseMgrUpdate()
