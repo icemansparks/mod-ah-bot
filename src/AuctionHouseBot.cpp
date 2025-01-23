@@ -35,6 +35,7 @@
 #include <random>
 #include <sstream>
 #include <map>
+#include <numeric>
 
 #include "AuctionHouseBotCommon.h"
 
@@ -1059,6 +1060,9 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             baseBidPrice    = baseBidPrice / 100;
         }
 
+        // Adjust prices based on moving average prices
+        AdjustPrices(itemID, baseBuyoutPrice, baseBidPrice);
+
         // Introduce randomness around the baseline values with a range of -10% to +10%
         int32 buyoutDeviation = urand(0, 20) - 10;
         int32 bidDeviation = urand(0, 20) - 10;
@@ -1836,4 +1840,68 @@ std::string JoinGUIDs(const std::vector<uint32>& guids)
         oss << guids[i];
     }
     return oss.str();
+}
+
+// Function to fetch recent auction history and calculate moving average prices
+std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 itemId)
+{
+    uint64 totalBuyoutPrice = 0;
+    uint64 totalBidPrice = 0;
+    uint32 buyoutCount = 0;
+    uint32 bidCount = 0;
+
+    // Fetch auction history for the last 30 days
+    // TODO: Use a more sophisticated query to filter out outliers
+    // TODO: Use a more sophisticated query to weight recent auctions more heavily
+    // TODO: Use a more sophisticated query to account for the number of auctions
+    // TODO: Use a more sophisticated query to account for the number of bidders
+    // TODO: Use a more sophisticated query to account for the number of buyouts
+    // TODO: Use a more sophisticated query to account for the number of cancellations
+    //right now it's just a simple average of all auctions in the last 30 days
+    // change to last 5 auctions - use a config value to switch between auctions and days
+    QueryResult result = WorldDatabase.PQuery(
+        "SELECT final_price, auction_type FROM mod_auctionhousebot_auction_history "
+        "WHERE item_id = %u AND timestamp >= NOW() - INTERVAL 30 DAY", itemId);
+
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            uint64 finalPrice = fields[0].GetUInt64();
+            std::string auctionType = fields[1].GetString();
+
+            if (auctionType == "buyout")
+            {
+                totalBuyoutPrice += finalPrice;
+                buyoutCount++;
+            }
+            else if (auctionType == "bid")
+            {
+                totalBidPrice += finalPrice;
+                bidCount++;
+            }
+        } while (result->NextRow());
+    }
+
+    uint64 averageBuyoutPrice = (buyoutCount > 0) ? totalBuyoutPrice / buyoutCount : 0;
+    uint64 averageBidPrice = (bidCount > 0) ? totalBidPrice / bidCount : 0;
+
+    return {averageBuyoutPrice, averageBidPrice};
+}
+
+// Function to adjust prices based on moving average prices
+void AuctionHouseBot::AdjustPrices(uint32 itemId, uint64& buyoutPrice, uint64& bidPrice)
+{
+    auto [averageBuyoutPrice, averageBidPrice] = CalculateMovingAveragePrices(itemId);
+
+    if (averageBuyoutPrice > 0)
+    {
+        buyoutPrice = averageBuyoutPrice;
+    }
+
+    if (averageBidPrice > 0)
+    {
+        bidPrice = averageBidPrice;
+    }
 }
