@@ -1199,14 +1199,14 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         // Log the successful listing of an item
         if (config->TraceSeller)
         {
-            LOG_INFO("module", "AHBot [{}]: Successfully listed item {} with stack count {}", _id, itemID, stackCount);
+            LOG_INFO("module", "AHBot [{}]: AH: {} - Successfully listed item {} with stack count {}", _id, config->GetAHID(), itemID, stackCount);
         }
 
     }
 
     if (config->TraceSeller)
     {
-        LOG_INFO("module", "AHBot [{}]: listed {} items", _id, items);
+        LOG_INFO("module", "AHBot [{}]: listed {} items in auctionhouse {}", _id, items, config->GetAHID());
         LOG_INFO("module", "AHBot [{}]: auctionhouse {}, req={}, sold={}, aboveMin={}, aboveMax={}, loopBrk={}, noNeed={}, tooMany={}, binEmpty={}, err={}", _id, config->GetAHID(), items, noSold, aboveMin, aboveMax, loopBrk, noNeed, tooMany, binEmpty, err);
     }
 
