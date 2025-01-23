@@ -1244,6 +1244,16 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGui
         }
     };
 
+     // Convert sets to vectors
+    std::vector<uint32> greyItemsBin(config->GreyItemsBin.begin(), config->GreyItemsBin.end());
+    std::vector<uint32> whiteItemsBin(config->WhiteItemsBin.begin(), config->WhiteItemsBin.end());
+    std::vector<uint32> greenItemsBin(config->GreenItemsBin.begin(), config->GreenItemsBin.end());
+    std::vector<uint32> blueItemsBin(config->BlueItemsBin.begin(), config->BlueItemsBin.end());
+    std::vector<uint32> purpleItemsBin(config->PurpleItemsBin.begin(), config->PurpleItemsBin.end());
+    std::vector<uint32> orangeItemsBin(config->OrangeItemsBin.begin(), config->OrangeItemsBin.end());
+    std::vector<uint32> yellowItemsBin(config->YellowItemsBin.begin(), config->YellowItemsBin.end());
+
+
     // 1. Items with price overrides that are not listed by the bot yet (randomized order)
     std::vector<uint32> itemsWithOverridesNotListed;
     for (const auto& [itemID, _] : config->itemPriceOverrides)
