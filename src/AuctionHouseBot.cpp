@@ -704,7 +704,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     }
 
     // maxItemsToList is the number of items to list
-    for (uint32 cnt = 0; cnt < maxItemsToList && cnt < itemsToSell.size(); ++cnt)
+    for (uint32 cnt = 0; cnt < items && cnt < itemsToSell.size(); ++cnt)
     {
         uint32 itemID = itemsToSell[cnt];
 
