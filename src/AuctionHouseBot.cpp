@@ -1842,6 +1842,21 @@ std::string JoinGUIDs(const std::vector<uint32>& guids)
     return oss.str();
 }
 
+// Helper function to calculate the median
+uint64 CalculateMedian(std::vector<uint64>& prices)
+{
+    std::sort(prices.begin(), prices.end());
+    size_t size = prices.size();
+    if (size % 2 == 0)
+    {
+        return (prices[size / 2 - 1] + prices[size / 2]) / 2;
+    }
+    else
+    {
+        return prices[size / 2];
+    }
+}
+
 // Function to fetch recent auction history and calculate moving average prices
 std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 itemId)
 {
@@ -1849,19 +1864,25 @@ std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 i
     uint64 totalBidPrice = 0;
     uint32 buyoutCount = 0;
     uint32 bidCount = 0;
+    std::vector<uint64> buyoutPrices;
+    std::vector<uint64> bidPrices;
 
-    // Fetch auction history for the last 30 days
-    // TODO: Use a more sophisticated query to filter out outliers
-    // TODO: Use a more sophisticated query to weight recent auctions more heavily
-    // TODO: Use a more sophisticated query to account for the number of auctions
-    // TODO: Use a more sophisticated query to account for the number of bidders
-    // TODO: Use a more sophisticated query to account for the number of buyouts
-    // TODO: Use a more sophisticated query to account for the number of cancellations
-    //right now it's just a simple average of all auctions in the last 30 days
-    // change to last 5 auctions - use a config value to switch between auctions and days
-    QueryResult result = WorldDatabase.PQuery(
-        "SELECT final_price, auction_type FROM mod_auctionhousebot_auction_history "
-        "WHERE item_id = %u AND timestamp >= NOW() - INTERVAL 30 DAY", itemId);
+    QueryResult result;
+
+    if (config->UseAuctionCount)
+    {
+        // Fetch the last N auctions
+        result = WorldDatabase.PQuery(
+            "SELECT final_price, auction_type FROM mod_auctionhousebot_auction_history "
+            "WHERE item_id = %u ORDER BY timestamp DESC LIMIT %u", itemId, config->AuctionCount);
+    }
+    else
+    {
+        // Fetch auctions from the last N days
+        result = WorldDatabase.PQuery(
+            "SELECT final_price, auction_type FROM mod_auctionhousebot_auction_history "
+            "WHERE item_id = %u AND timestamp >= NOW() - INTERVAL %u DAY", itemId, config->Days);
+    }
 
     if (result)
     {
@@ -1873,15 +1894,68 @@ std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 i
 
             if (auctionType == "buyout")
             {
+                buyoutPrices.push_back(finalPrice);
                 totalBuyoutPrice += finalPrice;
                 buyoutCount++;
             }
             else if (auctionType == "bid")
             {
+                bidPrices.push_back(finalPrice);
                 totalBidPrice += finalPrice;
                 bidCount++;
             }
         } while (result->NextRow());
+    }
+
+    // Filter out outliers if enabled
+    if (config->FilterOutliers)
+    {
+        if (!buyoutPrices.empty())
+        {
+            uint64 medianBuyout = CalculateMedian(buyoutPrices);
+            buyoutPrices.erase(std::remove_if(buyoutPrices.begin(), buyoutPrices.end(),
+                                              [medianBuyout](uint64 price) { return price > 2 * medianBuyout || price < medianBuyout / 2; }),
+                               buyoutPrices.end());
+            totalBuyoutPrice = std::accumulate(buyoutPrices.begin(), buyoutPrices.end(), uint64(0));
+            buyoutCount = buyoutPrices.size();
+        }
+
+        if (!bidPrices.empty())
+        {
+            uint64 medianBid = CalculateMedian(bidPrices);
+            bidPrices.erase(std::remove_if(bidPrices.begin(), bidPrices.end(),
+                                           [medianBid](uint64 price) { return price > 2 * medianBid || price < medianBid / 2; }),
+                            bidPrices.end());
+            totalBidPrice = std::accumulate(bidPrices.begin(), bidPrices.end(), uint64(0));
+            bidCount = bidPrices.size();
+        }
+    }
+
+    // Weight recent auctions more heavily if enabled
+    if (config->WeightRecent)
+    {
+        uint64 weightedBuyoutPrice = 0;
+        uint64 weightedBidPrice = 0;
+        uint32 weight = 1;
+        uint32 totalWeight = 0;
+
+        for (auto it = buyoutPrices.rbegin(); it != buyoutPrices.rend(); ++it)
+        {
+            weightedBuyoutPrice += (*it) * weight;
+            totalWeight += weight;
+            weight++;
+        }
+        totalBuyoutPrice = (totalWeight > 0) ? weightedBuyoutPrice / totalWeight : totalBuyoutPrice;
+
+        weight = 1;
+        totalWeight = 0;
+        for (auto it = bidPrices.rbegin(); it != bidPrices.rend(); ++it)
+        {
+            weightedBidPrice += (*it) * weight;
+            totalWeight += weight;
+            weight++;
+        }
+        totalBidPrice = (totalWeight > 0) ? weightedBidPrice / totalWeight : totalBidPrice;
     }
 
     uint64 averageBuyoutPrice = (buyoutCount > 0) ? totalBuyoutPrice / buyoutCount : 0;

@@ -139,6 +139,21 @@ NeutralBiddingInterval = 10
 NeutralBidsPerInterval = 5
 NeutralSellingInterval = 10
 
+# Use auction count or days to calculate moving average prices
+UseAuctionCount = true
+
+# Number of recent auctions to consider if UseAuctionCount is true
+AuctionCount = 10
+
+# Number of days to consider if UseAuctionCount is false
+Days = 30
+
+# Filter out outliers in the auction history
+FilterOutliers = true
+
+# Weight recent auctions more heavily
+WeightRecent = true
+
 ###############################################################################
 # AUCTION HOUSE BOT FILTERS PART 1
 #

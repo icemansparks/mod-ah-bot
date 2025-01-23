@@ -119,10 +119,7 @@ private:
     uint32 _hordeSellingInterval;
     uint32 _neutralSellingInterval;
 
-    //
     // Amount of items to be sold in absolute values
-    //
-
     uint32 greytgp;
     uint32 whitetgp;
     uint32 greentgp;
@@ -139,10 +136,7 @@ private:
     uint32 orangeip;
     uint32 yellowip;
 
-    //
     // Situation of the auction house
-    //
-
     uint32 greyTGoods;
     uint32 whiteTGoods;
     uint32 greenTGoods;
@@ -159,10 +153,7 @@ private:
     uint32 orangeItems;
     uint32 yellowItems;
 
-    //
     // Per-item statistics
-    //
-
     std::map<uint32, uint32> itemsCount;
     std::map<uint32, uint64> itemsSum;
     std::map<uint32, uint64> itemsPrice;
@@ -175,27 +166,18 @@ private:
     std::vector<uint32> botGUIDs;
 
 public:
-    //
     // Debugging
-    //
-
     bool DebugOut;
     bool DebugOutConfig;
     bool DebugOutFilters;
     bool DebugOutBuyer;
     bool DebugOutSeller;
 
-    //
     // Tracing
-    //
-
     bool TraceSeller;
     bool TraceBuyer;
 
-    //
     // Setup
-    //
-
     bool AHBSeller;
     bool AHBBuyer;
     bool BuyMethod;
@@ -205,10 +187,7 @@ public:
     bool ConsiderOnlyBotAuctions;
     uint32 ItemsPerCycle;
 
-    //
     // Filters
-    //
-
     bool Vendor_Items;
     bool Loot_Items;
     bool Other_Items;
@@ -273,19 +252,13 @@ public:
     uint32 DisableTGsBelowReqSkillRank;
     uint32 DisableTGsAboveReqSkillRank;
 
-    //
     // Items validity for selling purposes
-    //
-
     std::set<uint32> NpcItems;
     std::set<uint32> LootItems;
     std::set<uint32> DisableItemStore;
     std::set<uint32> SellerWhiteList;
 
-    //
     // Bins for trade goods.
-    //
-
     std::set<uint32> GreyTradeGoodsBin;
     std::set<uint32> WhiteTradeGoodsBin;
     std::set<uint32> GreenTradeGoodsBin;
@@ -294,10 +267,7 @@ public:
     std::set<uint32> OrangeTradeGoodsBin;
     std::set<uint32> YellowTradeGoodsBin;
 
-    //
     // Bins for items
-    //
-
     std::set<uint32> GreyItemsBin;
     std::set<uint32> WhiteItemsBin;
     std::set<uint32> GreenItemsBin;
@@ -306,28 +276,25 @@ public:
     std::set<uint32> OrangeItemsBin;
     std::set<uint32> YellowItemsBin;
 
-    //
     // Price Override
-    //
-
     std::unordered_map<uint32, std::tuple<uint64, uint64>> itemPriceOverrides;
     float priceOverride;
     float GetPriceOverride() const { return priceOverride; }
     std::tuple<uint64, uint64> GetPriceOverrideForItem(uint32 itemId) const;
 
-    //
-    // Constructors/destructors
-    //
+    bool UseAuctionCount; // true to use auction count, false to use days
+    uint32 AuctionCount;  // Number of recent auctions to consider
+    uint32 Days;          // Number of days to consider
+    bool FilterOutliers;  // true to filter out outliers
+    bool WeightRecent;    // true to weight recent auctions more heavily
 
+    // Constructors/destructors
     AHBConfig();
     AHBConfig(uint32 ahid, AHBConfig* conf);
     AHBConfig(uint32 ahid);
     ~AHBConfig();
 
-    //
     // Ruotines
-    //
-
     void Initialize(std::set<uint32> botsIds);
     void InitializeBins();
     void Reset();

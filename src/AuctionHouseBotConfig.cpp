@@ -2050,13 +2050,14 @@ void AHBConfig::InitializeFromFile()
     _hordeSellingInterval          = sConfigMgr->GetOption<uint32>("HordeSellingInterval", 10);
     _neutralSellingInterval        = sConfigMgr->GetOption<uint32>("NeutralSellingInterval", 10);
 
+    // Load moving average adjustments
+    UseAuctionCount = sConfigMgr->GetBoolDefault("AuctionHouseBot.UseAuctionCount", true);
+    AuctionCount = sConfigMgr->GetIntDefault("AuctionHouseBot.AuctionCount", 100);
+    Days = sConfigMgr->GetIntDefault("AuctionHouseBot.Days", 30);
+    FilterOutliers = sConfigMgr->GetBoolDefault("AuctionHouseBot.FilterOutliers", true);
+    WeightRecent = sConfigMgr->GetBoolDefault("AuctionHouseBot.WeightRecent", true);
 
-
-
-    //
     // Flags: item types
-    //
-
     Vendor_Items                   = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.VendorItems"      , false);
     Loot_Items                     = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.LootItems"        , true);
     Other_Items                    = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.OtherItems"       , false);
@@ -2065,20 +2066,14 @@ void AHBConfig::InitializeFromFile()
     Other_TGs                      = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.OtherTradeGoods"  , false);
     Profession_Items               = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.ProfessionItems"  , false);
 
-    //
     // Flags: items binding
-    //
-
     No_Bind                        = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.No_Bind"             , true);
     Bind_When_Picked_Up            = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.Bind_When_Picked_Up" , false);
     Bind_When_Equipped             = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.Bind_When_Equipped"  , true);
     Bind_When_Use                  = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.Bind_When_Use"       , true);
     Bind_Quest_Item                = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.Bind_Quest_Item"     , false);
 
-    //
     // Flags: misc
-    //
-
     DisableConjured                = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.DisableConjured"               , false);
     DisableGems                    = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.DisableGems"                   , false);
     DisableMoney                   = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.DisableMoney"                  , false);
@@ -2088,10 +2083,7 @@ void AHBConfig::InitializeFromFile()
     DisableDuration                = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.DisableDuration"               , false);
     DisableBOP_Or_Quest_NoReqLevel = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.DisableBOP_Or_Quest_NoReqLevel", false);
 
-    //
     // Flags: items per class
-    //
-
     DisableWarriorItems            = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.DisableWarriorItems"    , false);
     DisablePaladinItems            = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.DisablePaladinItems"    , false);
     DisableHunterItems             = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.DisableHunterItems"     , false);
@@ -2117,10 +2109,7 @@ void AHBConfig::InitializeFromFile()
     DisableItemsBelowReqSkillRank  = sConfigMgr->GetOption<uint32>("AuctionHouseBot.DisableItemsBelowReqSkillRank", 0);
     DisableItemsAboveReqSkillRank  = sConfigMgr->GetOption<uint32>("AuctionHouseBot.DisableItemsAboveReqSkillRank", 0);
 
-    //
     // Trade goods level and skills
-    //
-
     DisableTGsBelowLevel           = sConfigMgr->GetOption<uint32>("AuctionHouseBot.DisableTGsBelowLevel"       , 0);
     DisableTGsAboveLevel           = sConfigMgr->GetOption<uint32>("AuctionHouseBot.DisableTGsAboveLevel"       , 0);
     DisableTGsBelowGUID            = sConfigMgr->GetOption<uint32>("AuctionHouseBot.DisableTGsBelowGUID"        , 0);
@@ -2130,26 +2119,17 @@ void AHBConfig::InitializeFromFile()
     DisableTGsBelowReqSkillRank    = sConfigMgr->GetOption<uint32>("AuctionHouseBot.DisableTGsBelowReqSkillRank", 0);
     DisableTGsAboveReqSkillRank    = sConfigMgr->GetOption<uint32>("AuctionHouseBot.DisableTGsAboveReqSkillRank", 0);
 
-    //
     // Whitelists
-    //
-
     SellerWhiteList                = getCommaSeparatedIntegers(sConfigMgr->GetOption<std::string>("AuctionHouseBot.SellerWhiteList", ""));
 }
 
 void AHBConfig::InitializeFromSql(std::set<uint32> botsIds)
 {
-    //
     // Load min and max items
-    //
-
     //SetMinItems(WorldDatabase.Query("SELECT minitems FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
     //SetMaxItems(WorldDatabase.Query("SELECT maxitems FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>());
 
-    //
     // Load percentages
-    //
-
     uint32 greytg   = WorldDatabase.Query("SELECT percentgreytradegoods   FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>();
     uint32 whitetg  = WorldDatabase.Query("SELECT percentwhitetradegoods  FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>();
     uint32 greentg  = WorldDatabase.Query("SELECT percentgreentradegoods  FROM mod_auctionhousebot WHERE auctionhouse = {}", GetAHID())->Fetch()->Get<uint32>();
