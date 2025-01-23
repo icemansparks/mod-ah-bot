@@ -1222,7 +1222,7 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGui
     std::vector<uint32> tempItemIDs;
 
     // Log the sizes of all bins
-    if (debug->TraceSeller)
+    if (config->TraceSeller)
     {
         LOG_INFO("module", "AHBot [{}]: GreyItemsBin.size: {}", _id, config->GreyItemsBin.size());
         LOG_INFO("module", "AHBot [{}]: WhiteItemsBin.size: {}", _id, config->WhiteItemsBin.size());
