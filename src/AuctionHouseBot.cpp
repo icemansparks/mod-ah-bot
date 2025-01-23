@@ -1205,7 +1205,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
     if (config->TraceSeller)
     {
-        LOG_INFO("module", "AHBot [{}]: listed {} items in auctionhouse {}", _id, items, config->GetAHID());
+        LOG_INFO("module", "AHBot [{}]: listed {} items in auctionhouse {}", _id, noSold, config->GetAHID());
         LOG_INFO("module", "AHBot [{}]: auctionhouse {}, req={}, sold={}, aboveMin={}, aboveMax={}, loopBrk={}, noNeed={}, tooMany={}, binEmpty={}, err={}", _id, config->GetAHID(), items, noSold, aboveMin, aboveMax, loopBrk, noNeed, tooMany, binEmpty, err);
     }
 
@@ -1217,56 +1217,91 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
 std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGuid botGuid)
 {
-    std::vector<uint32> prioritizedItemIDs;
+    //std::vector<uint32> prioritizedItemIDs;
+    std::vector<uint32> allItemIDs;
+    std::vector<uint32> tempItemIDs;
 
-    // Prioritize items with price overrides that are not listed by the bot yet
-    for (const auto& [itemID, prices] : config->itemPriceOverrides)
+    // Log the sizes of all bins
+    if (debug->TraceSeller)
     {
-        if (!IsItemListedByBot(itemID, config->GetAHID(), botGuid))
-        {
-            prioritizedItemIDs.push_back(itemID);
-        }
+        LOG_INFO("module", "AHBot [{}]: GreyItemsBin.size: {}", _id, config->GreyItemsBin.size());
+        LOG_INFO("module", "AHBot [{}]: WhiteItemsBin.size: {}", _id, config->WhiteItemsBin.size());
+        LOG_INFO("module", "AHBot [{}]: GreenItemsBin.size: {}", _id, config->GreenItemsBin.size());
+        LOG_INFO("module", "AHBot [{}]: BlueItemsBin.size: {}", _id, config->BlueItemsBin.size());
+        LOG_INFO("module", "AHBot [{}]: PurpleItemsBin.size: {}", _id, config->PurpleItemsBin.size());
+        LOG_INFO("module", "AHBot [{}]: OrangeItemsBin.size: {}", _id, config->OrangeItemsBin.size());
+        LOG_INFO("module", "AHBot [{}]: YellowItemsBin.size: {}", _id, config->YellowItemsBin.size());
     }
 
-    // If there are no such items, pick items for which price overrides do exist
-    if (prioritizedItemIDs.empty())
-    {
-        for (const auto& [itemID, prices] : config->itemPriceOverrides)
+    // Helper function to add items to the list
+    auto addItems = [&](const std::vector<uint32>& itemsBin, bool checkAuctionHouse) {
+        for (auto const& itemID : itemsBin)
         {
-            prioritizedItemIDs.push_back(itemID);
-        }
-    }
-
-    // If there are still no items, fall back to items without overrides that are not in the auction house
-    if (prioritizedItemIDs.empty())
-    {
-        for (uint32 itemID : GetAllItemIDs(config->GetAHID()))
-        {
-            if (config->itemPriceOverrides.find(itemID) == config->itemPriceOverrides.end() && !IsItemInAuctionHouse(itemID, config->GetAHID()))
+            if (disabledItems.find(itemID) == disabledItems.end() && (!checkAuctionHouse || !IsItemInAuctionHouse(itemID, config->GetAHID())))
             {
-                prioritizedItemIDs.push_back(itemID);
+                tempItemIDs.push_back(itemID);
             }
         }
-    }
+    };
 
-    // If there are still no items, fall back to random items without price overrides
-    if (prioritizedItemIDs.empty())
+    // 1. Items with price overrides that are not listed by the bot yet (randomized order)
+    std::vector<uint32> itemsWithOverridesNotListed;
+    for (const auto& [itemID, _] : config->itemPriceOverrides)
     {
-        for (uint32 itemID : GetAllItemIDs(config->GetAHID()))
+        if (disabledItems.find(itemID) == disabledItems.end() && !IsItemInAuctionHouse(itemID, config->GetAHID()))
         {
-            if (config->itemPriceOverrides.find(itemID) == config->itemPriceOverrides.end())
-            {
-                prioritizedItemIDs.push_back(itemID);
-            }
+            itemsWithOverridesNotListed.push_back(itemID);
         }
     }
+    std::shuffle(itemsWithOverridesNotListed.begin(), itemsWithOverridesNotListed.end(), std::mt19937(std::random_device()()));
+    allItemIDs.insert(allItemIDs.end(), itemsWithOverridesNotListed.begin(), itemsWithOverridesNotListed.end());
 
-    // Shuffle the prioritized item IDs to add randomness
-    std::random_device rd;
-    std::mt19937 g(rd());
-    std::shuffle(prioritizedItemIDs.begin(), prioritizedItemIDs.end(), g);
+    // 2. Items for which price overrides do exist (randomized order)
+    std::vector<uint32> itemsWithOverrides;
+    for (const auto& [itemID, _] : config->itemPriceOverrides)
+    {
+        if (disabledItems.find(itemID) == disabledItems.end())
+        {
+            itemsWithOverrides.push_back(itemID);
+        }
+    }
+    std::shuffle(itemsWithOverrides.begin(), itemsWithOverrides.end(), std::mt19937(std::random_device()()));
+    allItemIDs.insert(allItemIDs.end(), itemsWithOverrides.begin(), itemsWithOverrides.end());
 
-    return prioritizedItemIDs;
+    // 3. Items without overrides that are not in the auction house (randomized order)
+    addItems(config->GreyItemsBin, true);
+    addItems(config->WhiteItemsBin, true);
+    addItems(config->GreenItemsBin, true);
+    addItems(config->BlueItemsBin, true);
+    addItems(config->PurpleItemsBin, true);
+    addItems(config->OrangeItemsBin, true);
+    addItems(config->YellowItemsBin, true);
+
+    // Randomize the collected items
+    std::shuffle(tempItemIDs.begin(), tempItemIDs.end(), std::mt19937(std::random_device()()));
+    allItemIDs.insert(allItemIDs.end(), tempItemIDs.begin(), tempItemIDs.end());
+
+    // 4. Random items without price overrides (randomized order)
+    tempItemIDs.clear();
+    addItems(config->GreyItemsBin, false);
+    addItems(config->WhiteItemsBin, false);
+    addItems(config->GreenItemsBin, false);
+    addItems(config->BlueItemsBin, false);
+    addItems(config->PurpleItemsBin, false);
+    addItems(config->OrangeItemsBin, false);
+    addItems(config->YellowItemsBin, false);
+
+    // Randomize the collected items
+    std::shuffle(tempItemIDs.begin(), tempItemIDs.end(), std::mt19937(std::random_device()()));
+    allItemIDs.insert(allItemIDs.end(), tempItemIDs.begin(), tempItemIDs.end());
+
+    // Log the number of items to sell
+    if(config->TraceSeller)
+    {
+        LOG_INFO("module", "AHBot [{}]: GetItemsToSell returning {} items", _id, allItemIDs.size());
+    }
+
+    return allItemIDs;
 }
 
 // =============================================================================
