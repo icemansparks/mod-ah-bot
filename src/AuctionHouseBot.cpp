@@ -703,12 +703,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     {
         uint32 itemID = itemsToSell[cnt];
 
-        // Log the current iteration and item ID
-        if (config->TraceSeller)
-        {
-            LOG_INFO("module", "AHBot [{}]: Listing item {} (iteration {})", _id, itemID, cnt);
-        }
-
         // Update Auctions count for current Bot
         auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
         //LOG_ERROR("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
