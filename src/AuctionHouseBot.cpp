@@ -1237,7 +1237,7 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGui
     auto addItems = [&](const std::vector<uint32>& itemsBin, bool checkAuctionHouse) {
         for (auto const& itemID : itemsBin)
         {
-            if (disabledItems.find(itemID) == disabledItems.end() && (!checkAuctionHouse || !IsItemInAuctionHouse(itemID, config->GetAHID())))
+            if (!checkAuctionHouse || !IsItemInAuctionHouse(itemID, config->GetAHID()))
             {
                 tempItemIDs.push_back(itemID);
             }
@@ -1248,7 +1248,7 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGui
     std::vector<uint32> itemsWithOverridesNotListed;
     for (const auto& [itemID, _] : config->itemPriceOverrides)
     {
-        if (disabledItems.find(itemID) == disabledItems.end() && !IsItemInAuctionHouse(itemID, config->GetAHID()))
+        if (!IsItemInAuctionHouse(itemID, config->GetAHID()))
         {
             itemsWithOverridesNotListed.push_back(itemID);
         }
@@ -1260,10 +1260,7 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGui
     std::vector<uint32> itemsWithOverrides;
     for (const auto& [itemID, _] : config->itemPriceOverrides)
     {
-        if (disabledItems.find(itemID) == disabledItems.end())
-        {
-            itemsWithOverrides.push_back(itemID);
-        }
+        itemsWithOverrides.push_back(itemID);
     }
     std::shuffle(itemsWithOverrides.begin(), itemsWithOverrides.end(), std::mt19937(std::random_device()()));
     allItemIDs.insert(allItemIDs.end(), itemsWithOverrides.begin(), itemsWithOverrides.end());
