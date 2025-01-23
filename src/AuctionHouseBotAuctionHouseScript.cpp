@@ -184,26 +184,27 @@ void AHBot_AuctionHouseScript::OnAuctionRemove(AuctionHouseObject* /*ah*/, Aucti
         if (prototype)
         {
             config->DecItemCounts(prototype->Class, prototype->Quality);
+            if (config->DebugOut)
+            {
+                LOG_INFO("module", "AHBot: Decremented item counts for non-existent item - ah={}, item={}, new count={}", auction->GetHouseId(), auction->item_template, config->GetItemCounts(prototype->Quality));
+            }
         }
 
         return;
     }
 
-    if (config->DebugOut)
-    {
-        LOG_INFO("module", "AHBot: ah={}, item={}, count={}", auction->GetHouseId(), auction->item_template, config->GetItemCounts(prototype->Quality));
-    }
-
     // Decrement item counts
     config->DecItemCounts(prototype->Class, prototype->Quality);
+
+    if (config->DebugOut)
+    {
+        LOG_INFO("module", "AHBot: Auction removed - ah={}, item={}, new count={}", auction->GetHouseId(), auction->item_template, config->GetItemCounts(prototype->Quality));
+    }
 }
 
 void AHBot_AuctionHouseScript::OnAuctionSuccessful(AuctionHouseObject* /*ah*/, AuctionEntry* auction)
 {
-    //
     // Get the configuration for the auction house
-    //
-
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromHouse(auction->GetHouseId());
     AHBConfig*               config  = gNeutralConfig;
 
@@ -260,7 +261,7 @@ void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, Aucti
 
     if (config->DebugOut)
     {
-        LOG_INFO("module", "AHBot: ah={}, item={}, count={}", auction->GetHouseId(), auction->item_template, config->GetItemCounts(prototype->Quality));
+        LOG_INFO("module", "AHBot: Auction expired - ah={}, item={}, count={}", auction->GetHouseId(), auction->item_template, config->GetItemCounts(prototype->Quality));
     }
 
     config->DecItemCounts(prototype->Class, prototype->Quality);
