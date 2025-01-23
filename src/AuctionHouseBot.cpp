@@ -1276,13 +1276,13 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGui
     allItemIDs.insert(allItemIDs.end(), itemsWithOverrides.begin(), itemsWithOverrides.end());
 
     // 3. Items without overrides that are not in the auction house (randomized order)
-    addItems(config->GreyItemsBin, true);
-    addItems(config->WhiteItemsBin, true);
-    addItems(config->GreenItemsBin, true);
-    addItems(config->BlueItemsBin, true);
-    addItems(config->PurpleItemsBin, true);
-    addItems(config->OrangeItemsBin, true);
-    addItems(config->YellowItemsBin, true);
+    addItems(greyItemsBin, true);
+    addItems(whiteItemsBin, true);
+    addItems(greenItemsBin, true);
+    addItems(blueItemsBin, true);
+    addItems(purpleItemsBin, true);
+    addItems(orangeItemsBin, true);
+    addItems(yellowItemsBin, true);
 
     // Randomize the collected items
     std::shuffle(tempItemIDs.begin(), tempItemIDs.end(), std::mt19937(std::random_device()()));
@@ -1290,13 +1290,13 @@ std::vector<uint32> AuctionHouseBot::GetItemsToSell(AHBConfig* config, ObjectGui
 
     // 4. Random items without price overrides (randomized order)
     tempItemIDs.clear();
-    addItems(config->GreyItemsBin, false);
-    addItems(config->WhiteItemsBin, false);
-    addItems(config->GreenItemsBin, false);
-    addItems(config->BlueItemsBin, false);
-    addItems(config->PurpleItemsBin, false);
-    addItems(config->OrangeItemsBin, false);
-    addItems(config->YellowItemsBin, false);
+    addItems(greyItemsBin, false);
+    addItems(whiteItemsBin, false);
+    addItems(greenItemsBin, false);
+    addItems(blueItemsBin, false);
+    addItems(purpleItemsBin, false);
+    addItems(orangeItemsBin, false);
+    addItems(yellowItemsBin, false);
 
     // Randomize the collected items
     std::shuffle(tempItemIDs.begin(), tempItemIDs.end(), std::mt19937(std::random_device()()));
