@@ -697,6 +697,11 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 err       = 0; // Tracing counter
 
     //LOG_ERROR("module", "AHBot [{}]: totalAuctions: {} ", _id, totalAuctions);
+    if (config->TraceSeller)
+    {
+        LOG_INFO("module", "AHBot [{}]: AH: {} - Starting selling process with {} items to sell", _id, config->GetAHID(), itemsToSell.size());
+        LOG_info("module", "AHBot [{}]: AH: {} - Starting selling process with {} items to List", _id, config->GetAHID(), maxItemsToList);
+    }
 
     // maxItemsToList is the number of items to list
     for (uint32 cnt = 0; cnt < maxItemsToList && cnt < itemsToSell.size(); ++cnt)
@@ -1193,7 +1198,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         // Log the successful listing of an item
         if (config->TraceSeller)
         {
-            LOG_INFO("module", "AHBot [{}]: AH: {} - Successfully listed item {} with stack count {}", _id, config->GetAHID(), itemID, stackCount);
+            LOG_INFO("module", "AHBot [{}]: AH: {} - Successfully listed item {} with stack count {}, cnt={}", _id, config->GetAHID(), itemID, stackCount, cnt);
         }
 
     }
