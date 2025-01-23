@@ -1127,12 +1127,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         CharacterDatabase.CommitTransaction(trans);
 
-        // Log the successful listing of an item
-        if (config->debugOutSeller)
-        {
-            LOG_INFO("module", "AHBot [{}]: Successfully listed item {} with stack count {}", _id, itemID, stackCount);
-        }
-
         // Increments the number of items presents in the auction
         switch (choice)
         {
@@ -1197,6 +1191,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         }
 
         noSold++;
+
+        // Log the successful listing of an item
+        if (config->debugOutSeller)
+        {
+            LOG_INFO("module", "AHBot [{}]: Successfully listed item {} with stack count {}", _id, itemID, stackCount);
+        }
 
     }
 
