@@ -641,7 +641,10 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     }
 
     // Log the number of items to list
-    LOG_INFO("module", "AHBot [{}]: Trying to list {} items", _id, items);
+    if (config->DebugOutSeller)
+    {
+        LOG_INFO("module", "AHBot [{}]: Trying to list {} items", _id, items);
+    }
 
     // Use the max stack size configuration value
     uint32 maxStackSize = config->GetMaxStackSize();
@@ -1125,7 +1128,10 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         CharacterDatabase.CommitTransaction(trans);
 
         // Log the successful listing of an item
-        LOG_INFO("module", "AHBot [{}]: Successfully listed item {} with stack count {}", _id, itemID, stackCount);
+        if (config->debugOutSeller)
+        {
+            LOG_INFO("module", "AHBot [{}]: Successfully listed item {} with stack count {}", _id, itemID, stackCount);
+        }
 
         // Increments the number of items presents in the auction
         switch (choice)
@@ -1192,19 +1198,14 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         noSold++;
 
-        if (config->TraceSeller)
-        {
-            //TODO: add item name, quality and stack size as well as totalAuctions
-            LOG_INFO("module", "AHBot [{}]: New stack ah={}, id={}, stack={}, bid={}, buyout={}", _id, config->GetAHID(), itemID, stackCount, auctionEntry->startbid, auctionEntry->buyout);
-        }
     }
 
     if (config->TraceSeller)
     {
+        LOG_INFO("module", "AHBot [{}]: listed {} items", _id, items);
         LOG_INFO("module", "AHBot [{}]: auctionhouse {}, req={}, sold={}, aboveMin={}, aboveMax={}, loopBrk={}, noNeed={}, tooMany={}, binEmpty={}, err={}", _id, config->GetAHID(), items, noSold, aboveMin, aboveMax, loopBrk, noNeed, tooMany, binEmpty, err);
     }
 
-    totalAuctions += items;
 }
 
 // =============================================================================
