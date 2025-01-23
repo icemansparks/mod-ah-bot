@@ -220,22 +220,36 @@ void AHBot_AuctionHouseScript::OnAuctionSuccessful(AuctionHouseObject* /*ah*/, A
         }
     }
 
-    //
+    // Update item stats
     // If the auction has been won, it means that it has been accepted by the market.
     // Use the buyout as a reference since the price for the bid is downgraded during selling.
-    //
-
     config->UpdateItemStats(auction->item_template, auction->itemCount, auction->buyout);
+
+    // Decrement item counts
+    ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(auction->item_template);
+
+    if (config->DebugOut)
+    {
+        LOG_INFO("module", "AHBot: Auction successful - ah={}, item={}, count={}", auction->GetHouseId(), auction->item_template, config->GetItemCounts(prototype->Quality));
+    }
+
+    config->DecItemCounts(prototype->Class, prototype->Quality);
+
+    // Insert record into auction history table
+    std::string auctionType = (auction->bid > 0) ? "bid" : "buyout";
+    uint64 finalPrice = (auction->bid > 0) ? auction->bid : auction->buyout;
+
+    auto trans = WorldDatabase.BeginTransaction();
+    trans->PAppend("INSERT INTO `mod_auctionhousebot_auction_history` (`item_id`, `quantity`, `final_price`, `auction_type`, `seller`, `buyer`) VALUES (%u, %u, %llu, '%s', %llu, %llu)",
+                   auction->item_template, auction->itemCount, finalPrice, auctionType.c_str(), auction->owner.GetRawValue(), buyer.GetRawValue());
+    WorldDatabase.CommitTransaction(trans);
 }
 
 void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, AuctionEntry* auction)
 {
-    //
     // Get the configuration for the auction house
-    //
-
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromHouse(auction->GetHouseId());
-    AHBConfig*               config  = gNeutralConfig;
+    AHBConfig* config = gNeutralConfig;
 
     if (ahEntry)
     {
@@ -249,11 +263,8 @@ void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, Aucti
         }
     }
 
-    //
     // If the auction expired, then it means that the bid was unwanted by the market.
     // Bid price is usually less or equal to the buyout, so this likely will bring the price down.
-    //
-
     config->UpdateItemStats(auction->item_template, auction->itemCount, auction->bid);
 
     // Decrement item counts
@@ -265,6 +276,12 @@ void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, Aucti
     }
 
     config->DecItemCounts(prototype->Class, prototype->Quality);
+
+    // Insert record into auction history table
+    auto trans = WorldDatabase.BeginTransaction();
+    trans->PAppend("INSERT INTO `mod_auctionhousebot_auction_history` (`item_id`, `quantity`, `final_price`, `auction_type`, `seller`, `buyer`) VALUES (%u, %u, %llu, 'expired', %llu, NULL)",
+                   auction->item_template, auction->itemCount, auction->startbid, auction->owner.GetRawValue());
+    WorldDatabase.CommitTransaction(trans);
 }
 
 void AHBot_AuctionHouseScript::OnBeforeAuctionHouseMgrUpdate()
