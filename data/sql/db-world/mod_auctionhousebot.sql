@@ -380,3 +380,7 @@ VALUES
 (53890), (54069), (54860), (50840), (53891), (53924), (51997), (51998), (54847), (54857), (56806), (54212), (54452), (54810), (50093), (54822),
 (50289), (50301), (50307), (52189), (52202), (52272), (52275), (52276), (52345), (52562), (52563), (52565), (52729), (53510), (54218), (54455),
 (54467), (50248), (50431), (52011), (52062), (54291), (54470);
+
+-- This adds any item with the deprecated flag (0x10 / 16 ITEM_FLAG_DEPRECATED) to the disabled item table as long as it isn't already in there.
+INSERT INTO `mod_auctionhousebot_disabled_items` (item)
+SELECT t.entry FROM `mod_auctionhousebot_disabled_items` AS d right JOIN `item_template` t ON (d.item = t.entry) WHERE (Flags & 16) = 16 AND d.item IS NULL;
