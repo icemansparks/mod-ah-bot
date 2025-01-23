@@ -700,7 +700,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     if (config->TraceSeller)
     {
         LOG_INFO("module", "AHBot [{}]: AH: {} - Starting selling process with {} items to sell", _id, config->GetAHID(), itemsToSell.size());
-        LOG_info("module", "AHBot [{}]: AH: {} - Starting selling process with {} items to List", _id, config->GetAHID(), maxItemsToList);
+        LOG_INFO("module", "AHBot [{}]: AH: {} - Starting selling process with {} items to List", _id, config->GetAHID(), maxItemsToList);
     }
 
     // maxItemsToList is the number of items to list
