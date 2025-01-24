@@ -28,7 +28,7 @@
 #include "Config.h"
 #include "Player.h"
 #include "AuctionHouseSearcher.h"
-#include "Field.h
+#include "Field.h"
 
 #include <algorithm>
 #include <vector>

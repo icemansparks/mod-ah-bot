@@ -33,7 +33,7 @@
 
 #include "DatabaseEnv.h"
 #include "Player.h"
-#include "Field.h
+#include "Field.h"
 
 class AHBConfig;
 class AuctionHouseObject;
