@@ -36,6 +36,7 @@
 #include <sstream>
 #include <map>
 #include <numeric>
+#include <utility>
 
 #include "AuctionHouseBotCommon.h"
 
