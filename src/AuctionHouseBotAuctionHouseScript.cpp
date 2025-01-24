@@ -241,7 +241,7 @@ void AHBot_AuctionHouseScript::OnAuctionSuccessful(AuctionHouseObject* /*ah*/, A
 
     auto trans = WorldDatabase.BeginTransaction();
     trans->Append("INSERT INTO `mod_auctionhousebot_auction_history` (`item_id`, `quantity`, `final_price`, `auction_type`, `seller`, `buyer`) VALUES (%u, %u, %llu, '%s', %llu, %llu)",
-                   auction->item_template, auction->itemCount, finalPrice, auctionType.c_str(), auction->owner.GetRawValue(), buyer.GetRawValue());
+                   auction->item_template, auction->itemCount, finalPrice, auctionType.c_str(), auction->owner.GetRawValue(), auction->bidder.GetRawValue());
     WorldDatabase.CommitTransaction(trans);
 }
 
