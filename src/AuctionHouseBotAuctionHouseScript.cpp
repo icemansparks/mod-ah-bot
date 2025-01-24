@@ -279,7 +279,7 @@ void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, Aucti
 
     // Insert record into auction history table
     auto trans = WorldDatabase.BeginTransaction();
-    trans->PAppend("INSERT INTO `mod_auctionhousebot_auction_history` (`item_id`, `quantity`, `final_price`, `auction_type`, `seller`, `buyer`) VALUES (%u, %u, %llu, 'expired', %llu, NULL)",
+    trans->Append("INSERT INTO `mod_auctionhousebot_auction_history` (`item_id`, `quantity`, `final_price`, `auction_type`, `seller`, `buyer`) VALUES (%u, %u, %llu, 'expired', %llu, NULL)",
                    auction->item_template, auction->itemCount, auction->startbid, auction->owner.GetRawValue());
     WorldDatabase.CommitTransaction(trans);
 }
