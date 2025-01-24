@@ -1873,14 +1873,14 @@ std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 i
     if (config->UseAuctionCount)
     {
         // Fetch the last N auctions
-        result = WorldDatabase.PQuery(
+        result = WorldDatabase.Query(
             "SELECT final_price, auction_type FROM mod_auctionhousebot_auction_history "
             "WHERE item_id = %u ORDER BY timestamp DESC LIMIT %u", itemId, config->AuctionCount);
     }
     else
     {
         // Fetch auctions from the last N days
-        result = WorldDatabase.PQuery(
+        result = WorldDatabase.Query(
             "SELECT final_price, auction_type FROM mod_auctionhousebot_auction_history "
             "WHERE item_id = %u AND timestamp >= NOW() - INTERVAL %u DAY", itemId, config->Days);
     }
@@ -1956,7 +1956,7 @@ std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 i
     uint64 averageBidPrice = (bidCount > 0) ? totalBidPrice / bidCount : 0;
 
     // Fetch avgPrice and minPrice values from mod_auctionhousebot_priceOverride table
-    QueryResult priceOverrideResult = WorldDatabase.PQuery(
+    QueryResult priceOverrideResult = WorldDatabase.Query(
         "SELECT avgPrice, minPrice FROM mod_auctionhousebot_priceOverride WHERE item = %u", itemId);
 
     if (priceOverrideResult)
@@ -1991,7 +1991,7 @@ void AuctionHouseBot::AdjustPrices(uint32 itemId, uint64& buyoutPrice, uint64& b
     }
 
     // Enforce minimum and maximum price limits based on avgPrice and minPrice values
-    QueryResult priceOverrideResult = WorldDatabase.PQuery(
+    QueryResult priceOverrideResult = WorldDatabase.Query(
         "SELECT avgPrice, minPrice FROM mod_auctionhousebot_priceOverride WHERE item = %u", itemId);
 
     if (priceOverrideResult)
