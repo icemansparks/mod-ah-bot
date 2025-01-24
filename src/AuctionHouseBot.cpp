@@ -1858,7 +1858,7 @@ uint64 CalculateMedian(std::vector<uint64>& prices)
 }
 
 // Function to fetch recent auction history and calculate moving average prices
-std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 itemId)
+std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 itemId, AHBConfig* config)
 {
     uint64 totalBuyoutPrice = 0;
     uint64 totalBidPrice = 0;
@@ -1961,13 +1961,30 @@ std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 i
     uint64 averageBuyoutPrice = (buyoutCount > 0) ? totalBuyoutPrice / buyoutCount : 0;
     uint64 averageBidPrice = (bidCount > 0) ? totalBidPrice / bidCount : 0;
 
+    // Fetch avgPrice and minPrice values from mod_auctionhousebot_priceOverride table
+    QueryResult priceOverrideResult = WorldDatabase.PQuery(
+        "SELECT avgPrice, minPrice FROM mod_auctionhousebot_priceOverride WHERE item = %u", itemId);
+
+    if (priceOverrideResult)
+    {
+        Field* fields = priceOverrideResult->Fetch();
+        uint64 avgPrice = fields[0].GetUInt64();
+        uint64 minPrice = fields[1].GetUInt64();
+
+        // Enforce minimum and maximum price limits based on AVG and MIN values
+        uint64 maxPrice = avgPrice * 2; // Example: max price is twice the average price
+        uint64 adjustedMinPrice = minPrice * config->MinPriceTolerance; // Allow prices to go slightly below minPrice
+        averageBuyoutPrice = std::clamp(averageBuyoutPrice, adjustedMinPrice, maxPrice);
+        averageBidPrice = std::clamp(averageBidPrice, adjustedMinPrice, maxPrice);
+    }
+
     return {averageBuyoutPrice, averageBidPrice};
 }
 
 // Function to adjust prices based on moving average prices
-void AuctionHouseBot::AdjustPrices(uint32 itemId, uint64& buyoutPrice, uint64& bidPrice)
+void AuctionHouseBot::AdjustPrices(uint32 itemId, uint64& buyoutPrice, uint64& bidPrice, AHBConfig* config)
 {
-    auto [averageBuyoutPrice, averageBidPrice] = CalculateMovingAveragePrices(itemId);
+    auto [averageBuyoutPrice, averageBidPrice] = CalculateMovingAveragePrices(itemId, config);
 
     if (averageBuyoutPrice > 0)
     {
@@ -1977,5 +1994,21 @@ void AuctionHouseBot::AdjustPrices(uint32 itemId, uint64& buyoutPrice, uint64& b
     if (averageBidPrice > 0)
     {
         bidPrice = averageBidPrice;
+    }
+
+    // Enforce minimum and maximum price limits based on avgPrice and minPrice values
+    QueryResult priceOverrideResult = WorldDatabase.PQuery(
+        "SELECT avgPrice, minPrice FROM mod_auctionhousebot_priceOverride WHERE item = %u", itemId);
+
+    if (priceOverrideResult)
+    {
+        Field* fields = priceOverrideResult->Fetch();
+        uint64 avgPrice = fields[0].GetUInt64();
+        uint64 minPrice = fields[1].GetUInt64();
+
+        uint64 maxPrice = avgPrice * 2; // Example: max price is twice the average price
+        uint64 adjustedMinPrice = minPrice * config->MinPriceTolerance; // Allow prices to go slightly below minPrice
+        buyoutPrice = std::clamp(buyoutPrice, adjustedMinPrice, maxPrice);
+        bidPrice = std::clamp(bidPrice, adjustedMinPrice, maxPrice);
     }
 }

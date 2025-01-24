@@ -2056,6 +2056,8 @@ void AHBConfig::InitializeFromFile()
     Days = sConfigMgr->GetIntDefault("AuctionHouseBot.Days", 30);
     FilterOutliers = sConfigMgr->GetBoolDefault("AuctionHouseBot.FilterOutliers", true);
     WeightRecent = sConfigMgr->GetBoolDefault("AuctionHouseBot.WeightRecent", true);
+    MinPriceTolerance = sConfigMgr->GetFloatDefault("AuctionHouseBot.MinPriceTolerance", 0.9f); // Default tolerance is 90% of minPrice
+
 
     // Flags: item types
     Vendor_Items                   = sConfigMgr->GetOption<bool>  ("AuctionHouseBot.VendorItems"      , false);

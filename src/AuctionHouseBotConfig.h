@@ -287,6 +287,7 @@ public:
     uint32 Days;          // Number of days to consider
     bool FilterOutliers;  // true to filter out outliers
     bool WeightRecent;    // true to weight recent auctions more heavily
+    float MinPriceTolerance; // Tolerance factor for minimum price
 
     // Constructors/destructors
     AHBConfig();

@@ -76,6 +76,16 @@ private:
     uint32 getElement(std::set<uint32> set, int index, uint32 botId, uint32 maxDup, AuctionHouseObject* auctionHouse);
     uint32 getTotalAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse);
 
+    // Helper function to calculate the median
+    uint64 CalculateMedian(std::vector<uint64>& prices);
+
+    // Function to fetch recent auction history and calculate moving average prices
+    std::pair<uint64, uint64> CalculateMovingAveragePrices(uint32 itemId, AHBConfig* config);
+
+    // Function to adjust prices based on moving average prices
+    void AdjustPrices(uint32 itemId, uint64& buyoutPrice, uint64& bidPrice, AHBConfig* config);
+
+
 public:
     AuctionHouseBot(uint32 account, uint32 id);
     ~AuctionHouseBot();

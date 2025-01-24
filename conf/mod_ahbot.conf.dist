@@ -154,6 +154,9 @@ FilterOutliers = true
 # Weight recent auctions more heavily
 WeightRecent = true
 
+# Tolerance factor for minimum price (e.g., 0.9 means prices can go down to 90% of minPrice)
+MinPriceTolerance = 0.95
+
 ###############################################################################
 # AUCTION HOUSE BOT FILTERS PART 1
 #
