@@ -200,14 +200,17 @@ uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* 
 
 void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* session)
 {
-    LOG_INFO("module", "AHBot [{}]: Starting buying process", _id);
-
     // Check if disabled
     if (!config->AHBBuyer)
     {
         LOG_INFO("module", "AHBot [{}]: Buyer is disabled", _id);
         return;
     }
+
+    if(config->DebugOutBuyer)
+    {
+        LOG_INFO("module", "AHBot [{}]: Starting buying process", _id);
+    } 
 
     // Retrieve items not owned by the bot and not bought by the bot
     std::string botGUIDsStr = JoinGUIDs(config->GetBotGUIDs());
@@ -231,7 +234,10 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         possibleBids.insert(tmpdata);
     } while (result->NextRow());
 
-    LOG_INFO("module", "AHBot [{}]: Found {} possible bids", _id, possibleBids.size());
+    if(config->DebugOutBuyer)
+    {
+        LOG_INFO("module", "AHBot [{}]: Found {} possible bids", _id, possibleBids.size());
+    }
 
     // If it's not possible to bid stop here
     if (possibleBids.empty())
@@ -263,27 +269,43 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     // Perform the operation for a maximum amount of bids attempts configured
     for (uint32 count = 1; count <= bidsPerInterval; ++count)
     {
-        LOG_INFO("module", "AHBot [{}]: Attempting bid {}/{}", _id, count, bidsPerInterval);
+        if(config->DebugOutBuyer)
+        {
+            LOG_INFO("module", "AHBot [{}]: Attempting bid {}/{}", _id, count, bidsPerInterval);
+        }
 
         // Choose a random auction from possible auctions
         uint32 randBid = 0;
-        LOG_INFO("module", "AHBot [{}]: possibleBids.size: {}", _id, possibleBids.size());
+        if(config->DebugOutBuyer)
+        {
+            LOG_INFO("module", "AHBot [{}]: possibleBids.size: {}", _id, possibleBids.size());
+        }
+
         if (possibleBids.size() > 0)
         {
             if (possibleBids.size() > 1)
             {
-                LOG_INFO("module", "AHBot [{}]: possibleBids.size: {}", _id, possibleBids.size());
+                if(config->DebugOutBuyer)
+                {
+                    LOG_INFO("module", "AHBot [{}]: possibleBids.size: {}", _id, possibleBids.size());
+                }
                 randBid = urand(0, possibleBids.size() - 1);
             }
             else
             {
                 randBid = 0;
             }
-            LOG_INFO("module", "AHBot [{}]: Random bid: {}", _id, randBid);
+            if(config->DebugOutBuyer)
+            {
+                LOG_INFO("module", "AHBot [{}]: Random bid: {}", _id, randBid);
+            }
         }
         else
         {
-            LOG_ERROR("module", "AHBot: No possible bids available");
+            if(config->DebugOutBuyer)
+            {
+                LOG_ERROR("module", "AHBot: No possible bids available");
+            }
             continue;
         }
 
