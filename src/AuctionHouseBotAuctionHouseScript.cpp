@@ -240,8 +240,8 @@ void AHBot_AuctionHouseScript::OnAuctionSuccessful(AuctionHouseObject* /*ah*/, A
     uint64 finalPrice = (auction->bid > 0) ? auction->bid : auction->buyout;
 
     auto trans = WorldDatabase.BeginTransaction();
-    trans->Append("INSERT INTO `mod_auctionhousebot_auction_history` (`item_id`, `quantity`, `final_price`, `auction_type`, `seller`, `buyer`) VALUES (%u, %u, %llu, '%s', %llu, %llu)",
-                   auction->item_template, auction->itemCount, finalPrice, auctionType.c_str(), auction->owner.GetRawValue(), auction->bidder.GetRawValue());
+    trans->Append("INSERT INTO `mod_auctionhousebot_auction_history` (`item_id`, `quantity`, `final_price`, `auction_type`, `seller`, `buyer`) VALUES ({}, {}, {}, '{}', {}, {})",
+               auction->item_template, auction->itemCount, finalPrice, auctionType.c_str(), auction->owner.GetRawValue(), auction->bidder.GetRawValue());
     WorldDatabase.CommitTransaction(trans);
 }
 
@@ -279,8 +279,8 @@ void AHBot_AuctionHouseScript::OnAuctionExpire(AuctionHouseObject* /*ah*/, Aucti
 
     // Insert record into auction history table
     auto trans = WorldDatabase.BeginTransaction();
-    trans->Append("INSERT INTO `mod_auctionhousebot_auction_history` (`item_id`, `quantity`, `final_price`, `auction_type`, `seller`, `buyer`) VALUES (%u, %u, %llu, 'expired', %llu, NULL)",
-                   auction->item_template, auction->itemCount, auction->startbid, auction->owner.GetRawValue());
+    trans->Append("INSERT INTO `mod_auctionhousebot_auction_history` (`item_id`, `quantity`, `final_price`, `auction_type`, `seller`, `buyer`) VALUES ({}, {}, {}, 'expired', {}, NULL)",
+               auction->item_template, auction->itemCount, auction->startbid, auction->owner.GetRawValue());
     WorldDatabase.CommitTransaction(trans);
 }
 
