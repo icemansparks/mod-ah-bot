@@ -28,6 +28,7 @@
 #include "Config.h"
 #include "Player.h"
 #include "AuctionHouseSearcher.h"
+#include "Field.h
 
 #include <algorithm>
 #include <vector>
@@ -1931,7 +1932,7 @@ std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 i
         bidCount = bidPrices.size();
     }
 
-     // Weight recent auctions more heavily if enabled
+    // Weight recent auctions more heavily if enabled
     if (config->WeightRecent)
     {
         auto weightPrices = [](const std::vector<uint64>& prices, uint64& totalPrice) {
@@ -1965,7 +1966,7 @@ std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 i
         uint64 avgPrice = fields[0].GetUInt64();
         uint64 minPrice = fields[1].GetUInt64();
 
-        // Enforce minimum and maximum price limits based on AVG and MIN values
+        // Enforce minimum and maximum price limits based on avgPrice and minPrice values
         uint64 maxPrice = avgPrice * 2; // Example: max price is twice the average price
         uint64 adjustedMinPrice = minPrice * config->MinPriceTolerance; // Allow prices to go slightly below minPrice
         averageBuyoutPrice = std::clamp(averageBuyoutPrice, adjustedMinPrice, maxPrice);
