@@ -2051,12 +2051,12 @@ void AHBConfig::InitializeFromFile()
     _neutralSellingInterval        = sConfigMgr->GetOption<uint32>("NeutralSellingInterval", 10);
 
     // Load moving average adjustments
-    UseAuctionCount = sConfigMgr->GetBoolDefault("AuctionHouseBot.UseAuctionCount", true);
-    AuctionCount = sConfigMgr->GetIntDefault("AuctionHouseBot.AuctionCount", 100);
-    Days = sConfigMgr->GetIntDefault("AuctionHouseBot.Days", 30);
-    FilterOutliers = sConfigMgr->GetBoolDefault("AuctionHouseBot.FilterOutliers", true);
-    WeightRecent = sConfigMgr->GetBoolDefault("AuctionHouseBot.WeightRecent", true);
-    MinPriceTolerance = sConfigMgr->GetFloatDefault("AuctionHouseBot.MinPriceTolerance", 0.9f); // Default tolerance is 90% of minPrice
+    UseAuctionCount                = sConfigMgr->GetOption<bool>("AuctionHouseBot.UseAuctionCount", true);
+    AuctionCount                   = sConfigMgr->GetOption<uint32>("AuctionHouseBot.AuctionCount", 100);
+    Days                           = sConfigMgr->GetOption<uint32>("AuctionHouseBot.Days", 30);
+    FilterOutliers                 = sConfigMgr->GetOption<bool>("AuctionHouseBot.FilterOutliers", true);
+    WeightRecent                   = sConfigMgr->GetOption<bool>("AuctionHouseBot.WeightRecent", true);
+    MinPriceTolerance              = sConfigMgr->GetOption<float>("AuctionHouseBot.MinPriceTolerance", 0.9f); // Default tolerance is 90% of minPrice
 
 
     // Flags: item types
