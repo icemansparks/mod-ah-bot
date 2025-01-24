@@ -1062,7 +1062,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         }
 
         // Adjust prices based on moving average prices
-        AdjustPrices(itemID, baseBuyoutPrice, baseBidPrice);
+        AdjustPrices(itemID, baseBuyoutPrice, baseBidPrice, config);
 
         // Introduce randomness around the baseline values with a range of -10% to +10%
         int32 buyoutDeviation = urand(0, 20) - 10;

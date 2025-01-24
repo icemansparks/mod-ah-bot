@@ -85,7 +85,6 @@ private:
     // Function to adjust prices based on moving average prices
     void AdjustPrices(uint32 itemId, uint64& buyoutPrice, uint64& bidPrice, AHBConfig* config);
 
-
 public:
     AuctionHouseBot(uint32 account, uint32 id);
     ~AuctionHouseBot();
