@@ -1845,7 +1845,7 @@ std::string JoinGUIDs(const std::vector<uint32>& guids)
 }
 
 // Helper function to calculate the median
-uint64 CalculateMedian(std::vector<uint64>& prices)
+uint64 AuctionHouseBot::CalculateMedian(std::vector<uint64>& prices)
 {
     std::sort(prices.begin(), prices.end());
     size_t size = prices.size();

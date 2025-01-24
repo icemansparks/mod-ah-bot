@@ -78,7 +78,7 @@ private:
     uint32 getTotalAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse);
 
     // Helper function to calculate the median
-    uint64 CalculateMedian(std::vector<uint64>& prices);
+    static uint64 CalculateMedian(std::vector<uint64>& prices);
 
     // Function to fetch recent auction history and calculate moving average prices
     std::pair<uint64, uint64> CalculateMovingAveragePrices(uint32 itemId, AHBConfig* config);
