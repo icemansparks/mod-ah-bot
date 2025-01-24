@@ -140,22 +140,22 @@ NeutralBidsPerInterval = 5
 NeutralSellingInterval = 10
 
 # Use auction count or days to calculate moving average prices
-UseAuctionCount = true
+AuctionHouseBot.UseAuctionCount = true
 
 # Number of recent auctions to consider if UseAuctionCount is true
-AuctionCount = 10
+AuctionHouseBot.AuctionCount = 10
 
 # Number of days to consider if UseAuctionCount is false
-Days = 30
+AuctionHouseBot.Days = 30
 
 # Filter out outliers in the auction history
-FilterOutliers = true
+AuctionHouseBot.FilterOutliers = true
 
 # Weight recent auctions more heavily
-WeightRecent = true
+AuctionHouseBot.WeightRecent = true
 
 # Tolerance factor for minimum price (e.g., 0.9 means prices can go down to 90% of minPrice)
-MinPriceTolerance = 0.95
+AuctionHouseBot.MinPriceTolerance = 0.95
 
 ###############################################################################
 # AUCTION HOUSE BOT FILTERS PART 1
