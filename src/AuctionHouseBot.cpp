@@ -1910,52 +1910,45 @@ std::pair<uint64, uint64> AuctionHouseBot::CalculateMovingAveragePrices(uint32 i
     // Filter out outliers if enabled
     if (config->FilterOutliers)
     {
-        if (!buyoutPrices.empty())
-        {
-            uint64 medianBuyout = CalculateMedian(buyoutPrices);
-            buyoutPrices.erase(std::remove_if(buyoutPrices.begin(), buyoutPrices.end(),
-                                              [medianBuyout](uint64 price) { return price > 2 * medianBuyout || price < medianBuyout / 2; }),
-                               buyoutPrices.end());
-            totalBuyoutPrice = std::accumulate(buyoutPrices.begin(), buyoutPrices.end(), uint64(0));
-            buyoutCount = buyoutPrices.size();
-        }
+        auto filterOutliers = [](std::vector<uint64>& prices) {
+            if (!prices.empty())
+            {
+                uint64 median = CalculateMedian(prices);
+                prices.erase(std::remove_if(prices.begin(), prices.end(),
+                                            [median](uint64 price) { return price > 2 * median || price < median / 2; }),
+                             prices.end());
+            }
+        };
 
-        if (!bidPrices.empty())
-        {
-            uint64 medianBid = CalculateMedian(bidPrices);
-            bidPrices.erase(std::remove_if(bidPrices.begin(), bidPrices.end(),
-                                           [medianBid](uint64 price) { return price > 2 * medianBid || price < medianBid / 2; }),
-                            bidPrices.end());
-            totalBidPrice = std::accumulate(bidPrices.begin(), bidPrices.end(), uint64(0));
-            bidCount = bidPrices.size();
-        }
+        filterOutliers(buyoutPrices);
+        filterOutliers(bidPrices);
+
+        totalBuyoutPrice = std::accumulate(buyoutPrices.begin(), buyoutPrices.end(), uint64(0));
+        buyoutCount = buyoutPrices.size();
+
+        totalBidPrice = std::accumulate(bidPrices.begin(), bidPrices.end(), uint64(0));
+        bidCount = bidPrices.size();
     }
 
-    // Weight recent auctions more heavily if enabled
+     // Weight recent auctions more heavily if enabled
     if (config->WeightRecent)
     {
-        uint64 weightedBuyoutPrice = 0;
-        uint64 weightedBidPrice = 0;
-        uint32 weight = 1;
-        uint32 totalWeight = 0;
+        auto weightPrices = [](const std::vector<uint64>& prices, uint64& totalPrice) {
+            uint64 weightedPrice = 0;
+            uint32 weight = 1;
+            uint32 totalWeight = 0;
 
-        for (auto it = buyoutPrices.rbegin(); it != buyoutPrices.rend(); ++it)
-        {
-            weightedBuyoutPrice += (*it) * weight;
-            totalWeight += weight;
-            weight++;
-        }
-        totalBuyoutPrice = (totalWeight > 0) ? weightedBuyoutPrice / totalWeight : totalBuyoutPrice;
+            for (auto it = prices.rbegin(); it != prices.rend(); ++it)
+            {
+                weightedPrice += (*it) * weight;
+                totalWeight += weight;
+                weight++;
+            }
+            totalPrice = (totalWeight > 0) ? weightedPrice / totalWeight : totalPrice;
+        };
 
-        weight = 1;
-        totalWeight = 0;
-        for (auto it = bidPrices.rbegin(); it != bidPrices.rend(); ++it)
-        {
-            weightedBidPrice += (*it) * weight;
-            totalWeight += weight;
-            weight++;
-        }
-        totalBidPrice = (totalWeight > 0) ? weightedBidPrice / totalWeight : totalBidPrice;
+        weightPrices(buyoutPrices, totalBuyoutPrice);
+        weightPrices(bidPrices, totalBidPrice);
     }
 
     uint64 averageBuyoutPrice = (buyoutCount > 0) ? totalBuyoutPrice / buyoutCount : 0;
