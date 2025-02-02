@@ -64,7 +64,7 @@ private:
     time_t     _lastrun_h_sec_Buy;
     time_t     _lastrun_n_sec_Buy;
 
-    ime_t _lastCleanupTime;
+    time_t _lastCleanupTime;
 
     // Main operations
     void Sell(Player *AHBplayer, AHBConfig *config);
