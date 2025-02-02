@@ -746,9 +746,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     {
         uint32 itemID = itemsToSell[cnt];
 
-        // Update Auctions count for current Bot
-        auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
-
         if (auctions >= maxAuctionsPerBot)
         {
             LOG_INFO("module", "AHBot [{}]: Reached max auctions per bot: {}", _id, maxAuctionsPerBot);
@@ -757,7 +754,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         // Select item by rarity
         uint32 choice = 0;
-        uint32 loopbreaker = 0;
 
         // Get the item template (improved loop)
         std::vector<std::pair<std::vector<uint32>&, uint32>> bins = {
