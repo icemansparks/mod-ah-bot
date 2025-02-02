@@ -113,7 +113,6 @@ public:
     void CreateAndSaveAuctionEntry(AuctionHouseObject* auctionHouse, Item* item, uint64 bidPrice, uint64 buyoutPrice, uint32 stackCount, uint32 dep, uint32 etime, AuctionHouseEntry const* ahEntry, Player* AHBplayer);
     uint32 DetermineStackSize(AHBConfig* config, ItemTemplate const* prototype, Item* item);
 
-
 };
 
 std::string JoinGUIDs(const std::vector<uint32>& guids);
