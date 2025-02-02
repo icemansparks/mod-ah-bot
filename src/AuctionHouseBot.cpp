@@ -753,33 +753,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         // Select item by rarity
         uint32 choice = 0;
-
-        // Get the item template (improved loop)
-        std::vector<std::pair<std::vector<uint32>&, uint32>> bins = {
-            {config->GreyItemsBin, AHB_GREY_I},
-            {config->GreyTradeGoodsBin, AHB_GREY_TG},
-            {config->WhiteItemsBin, AHB_WHITE_I},
-            {config->WhiteTradeGoodsBin, AHB_WHITE_TG},
-            {config->GreenItemsBin, AHB_GREEN_I},
-            {config->GreenTradeGoodsBin, AHB_GREEN_TG},
-            {config->BlueItemsBin, AHB_BLUE_I},
-            {config->BlueTradeGoodsBin, AHB_BLUE_TG},
-            {config->PurpleItemsBin, AHB_PURPLE_I},
-            {config->PurpleTradeGoodsBin, AHB_PURPLE_TG},
-            {config->OrangeItemsBin, AHB_ORANGE_I},
-            {config->OrangeTradeGoodsBin, AHB_ORANGE_TG},
-            {config->YellowItemsBin, AHB_YELLOW_I},
-            {config->YellowTradeGoodsBin, AHB_YELLOW_TG},
-        };
-
-        for (auto& bin : bins)
-        {
-            if (itemID == 0 && bin.first.size() > 0 && config->GetItemCounts(bin.second) < config->GetMaximum(bin.second))
-            {
-                itemID = getElement(bin.first, urand(0, bin.first.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                choice = bin.second;
-            }
-        }
+        itemID = SelectItem(config, auctionHouse, choice);
 
         if (itemID == 0)
         {
@@ -842,65 +816,11 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         // Determine the price
         uint64 buyoutPrice = 0;
         uint64 bidPrice = 0;
+        CalculatePrices(config, prototype, itemID, buyoutPrice, bidPrice);
+
+        // Determine the stack size
         uint32 stackCount = DetermineStackSize(config, prototype, item);
-        uint64 baseBuyoutPrice = 0;
-        uint64 baseBidPrice = 0;
-
-        auto it = config->itemPriceOverrides.find(itemID);
-        if (it != config->itemPriceOverrides.end())
-        {
-            // Base prices are loaded from from the price override table in the database
-            baseBuyoutPrice = std::get<0>(it->second);
-            baseBidPrice = std::get<1>(it->second);
-        }
-        else
-        {
-            // No price override was found, fall back to fixed default prices
-            if (config->SellAtMarketPrice)
-            {
-                baseBuyoutPrice = config->GetItemPrice(itemID);
-            }
-
-            if (baseBuyoutPrice == 0)
-            {
-                if (config->SellMethod)
-                {
-                    baseBuyoutPrice = prototype->BuyPrice;
-                }
-                else
-                {
-                    baseBuyoutPrice = prototype->SellPrice;
-                }
-            }
-
-            baseBuyoutPrice = baseBuyoutPrice * urand(config->GetMinPrice(prototype->Quality), config->GetMaxPrice(prototype->Quality)) / 100;
-            baseBidPrice    = baseBuyoutPrice * urand(config->GetMinBidPrice(prototype->Quality), config->GetMaxBidPrice(prototype->Quality)) / 100;
-        }
-
-        // Adjust prices based on moving average prices
-        AdjustPrices(itemID, baseBuyoutPrice, baseBidPrice, config);
-
-        // Introduce randomness around the baseline values with a range of -10% to +10%
-        int32 buyoutDeviation = urand(0, 20) - 10;
-        int32 bidDeviation = urand(0, 20) - 10;
-
-        // Adjust the baseline values with random deviation
-        buyoutPrice = baseBuyoutPrice * (1 + buyoutDeviation / 100.0);
-        bidPrice = baseBidPrice * (1 + bidDeviation / 100.0);
-
-        // TODO: Implement a more sophisticated pricing strategy
-        // For now, we just use the baseline prices with a random deviation
-        // Ideas: - Use a moving average of the last sales prices
-        //        - Use a moving average of the last bids
-        //        - Use a moving average of the last buyouts
-        // Make sure bidPrice is never higher than buyoutPrice - we could also think about making buyout higher than bid instead of lowering bid.
-        if (bidPrice > buyoutPrice)
-        {
-            bidPrice = buyoutPrice;
-            // increase buyout price by a random amount up to 5%
-            buyoutPrice = buyoutPrice * urand(101, 105) / 100;
-
-        }
+        item->SetCount(stackCount);
 
         // Determine the auction time
         uint32 etime = getElapsedTime(config->ElapsingTimeClass);
@@ -990,6 +910,87 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         LOG_INFO("module", "AHBot [{}]: auctionhouse {}, req={}, sold={}, aboveMin={}, aboveMax={}, loopBrk={}, noNeed={}, tooMany={}, binEmpty={}, err={}", _id, config->GetAHID(), items, noSold, aboveMin, aboveMax, loopBrk, noNeed, tooMany, binEmpty, err);
     }
 
+}
+
+uint32 SelectItem(AHBConfig* config, AuctionHouseObject* auctionHouse, uint32& choice)
+{
+    uint32 itemID = 0;
+    std::vector<std::pair<std::vector<uint32>&, uint32>> bins = {
+        {config->GreyItemsBin, AHB_GREY_I},
+        {config->GreyTradeGoodsBin, AHB_GREY_TG},
+        {config->WhiteItemsBin, AHB_WHITE_I},
+        {config->WhiteTradeGoodsBin, AHB_WHITE_TG},
+        {config->GreenItemsBin, AHB_GREEN_I},
+        {config->GreenTradeGoodsBin, AHB_GREEN_TG},
+        {config->BlueItemsBin, AHB_BLUE_I},
+        {config->BlueTradeGoodsBin, AHB_BLUE_TG},
+        {config->PurpleItemsBin, AHB_PURPLE_I},
+        {config->PurpleTradeGoodsBin, AHB_PURPLE_TG},
+        {config->OrangeItemsBin, AHB_ORANGE_I},
+        {config->OrangeTradeGoodsBin, AHB_ORANGE_TG},
+        {config->YellowItemsBin, AHB_YELLOW_I},
+        {config->YellowTradeGoodsBin, AHB_YELLOW_TG},
+    };
+
+    for (auto& bin : bins)
+    {
+        if (itemID == 0 && bin.first.size() > 0 && config->GetItemCounts(bin.second) < config->GetMaximum(bin.second))
+        {
+            itemID = getElement(bin.first, urand(0, bin.first.size() - 1), _id, config->DuplicatesCount, auctionHouse);
+            choice = bin.second;
+        }
+    }
+
+    return itemID;
+}
+
+void CalculatePrices(AHBConfig* config, ItemTemplate const* prototype, uint32 itemID, uint64& buyoutPrice, uint64& bidPrice)
+{
+    uint64 baseBuyoutPrice = 0;
+    uint64 baseBidPrice = 0;
+
+    auto it = config->itemPriceOverrides.find(itemID);
+    if (it != config->itemPriceOverrides.end())
+    {
+        baseBuyoutPrice = std::get<0>(it->second);
+        baseBidPrice = std::get<1>(it->second);
+    }
+    else
+    {
+        if (config->SellAtMarketPrice)
+        {
+            baseBuyoutPrice = config->GetItemPrice(itemID);
+        }
+
+        if (baseBuyoutPrice == 0)
+        {
+            if (config->SellMethod)
+            {
+                baseBuyoutPrice = prototype->BuyPrice;
+            }
+            else
+            {
+                baseBuyoutPrice = prototype->SellPrice;
+            }
+        }
+
+        baseBuyoutPrice = baseBuyoutPrice * urand(config->GetMinPrice(prototype->Quality), config->GetMaxPrice(prototype->Quality)) / 100;
+        baseBidPrice = baseBuyoutPrice * urand(config->GetMinBidPrice(prototype->Quality), config->GetMaxBidPrice(prototype->Quality)) / 100;
+    }
+
+    AdjustPrices(itemID, baseBuyoutPrice, baseBidPrice, config);
+
+    int32 buyoutDeviation = urand(0, 20) - 10;
+    int32 bidDeviation = urand(0, 20) - 10;
+
+    buyoutPrice = baseBuyoutPrice * (1 + buyoutDeviation / 100.0);
+    bidPrice = baseBidPrice * (1 + bidDeviation / 100.0);
+
+    if (bidPrice > buyoutPrice)
+    {
+        bidPrice = buyoutPrice;
+        buyoutPrice = buyoutPrice * urand(101, 105) / 100;
+    }
 }
 
 void CreateAndSaveAuctionEntry(AuctionHouseObject* auctionHouse, Item* item, uint64 bidPrice, uint64 buyoutPrice, uint32 stackCount, uint32 dep, uint32 etime, AuctionHouseEntry const* ahEntry, Player* AHBplayer)
