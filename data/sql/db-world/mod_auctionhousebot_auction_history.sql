@@ -8,3 +8,9 @@ CREATE TABLE `mod_auctionhousebot_auction_history` (
     `auction_type` ENUM('bid', 'buyout', 'expired') NOT NULL,
     `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Add index on item_id
+CREATE INDEX idx_item_id ON mod_auctionhousebot_auction_history (item_id);
+
+-- Add index on timestamp
+CREATE INDEX idx_timestamp ON mod_auctionhousebot_auction_history (timestamp);

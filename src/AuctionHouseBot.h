@@ -64,6 +64,8 @@ private:
     time_t     _lastrun_h_sec_Buy;
     time_t     _lastrun_n_sec_Buy;
 
+    ime_t _lastCleanupTime;
+
     // Main operations
     void Sell(Player *AHBplayer, AHBConfig *config);
     void Buy (Player *AHBplayer, AHBConfig *config, WorldSession *session);
@@ -85,6 +87,9 @@ private:
 
     // Function to adjust prices based on moving average prices
     void AdjustPrices(uint32 itemId, uint64& buyoutPrice, uint64& bidPrice, AHBConfig* config);
+
+    // Cleanup function to remove old auction history entries
+    void CleanupOldAuctionHistory();
 
 public:
     AuctionHouseBot(uint32 account, uint32 id);

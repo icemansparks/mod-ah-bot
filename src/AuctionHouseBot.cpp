@@ -59,6 +59,8 @@ AuctionHouseBot::AuctionHouseBot(uint32 account, uint32 id)
     _lastrun_h_sec_Buy  = time(NULL);
     _lastrun_n_sec_Buy  = time(NULL);
 
+    _lastCleanupTime = time(NULL);
+
     _allianceConfig = NULL;
     _hordeConfig    = NULL;
     _neutralConfig  = NULL;
@@ -210,7 +212,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     if(config->DebugOutBuyer)
     {
         LOG_INFO("module", "AHBot [{}]: Starting buying process", _id);
-    } 
+    }
 
     // Retrieve items not owned by the bot and not bought by the bot
     std::string botGUIDsStr = JoinGUIDs(config->GetBotGUIDs());
@@ -1431,6 +1433,13 @@ void AuctionHouseBot::Update()
 {
     time_t currentTime = time(NULL);
 
+    // Perform cleanup every 24 hours
+    if (difftime(currentTime, _lastCleanupTime) >= 24 * 60 * 60)
+    {
+        CleanupOldAuctionHistory();
+        _lastCleanupTime = currentTime;
+    }
+
     // If no configuration is associated, then stop here
     if (!_allianceConfig && !_hordeConfig && !_neutralConfig)
     {
@@ -2027,5 +2036,48 @@ void AuctionHouseBot::AdjustPrices(uint32 itemId, uint64& buyoutPrice, uint64& b
         uint64 adjustedMinPrice = minPrice * config->MinPriceTolerance; // Allow prices to go slightly below minPrice
         buyoutPrice = std::clamp(buyoutPrice, adjustedMinPrice, maxPrice);
         bidPrice = std::clamp(bidPrice, adjustedMinPrice, maxPrice);
+    }
+}
+
+void AuctionHouseBot::CleanupOldAuctionHistory()
+{
+    AHBConfig* config = nullptr;
+
+    if (_allianceConfig)
+    {
+        config = _allianceConfig;
+    }
+    else if (_hordeConfig)
+    {
+        config = _hordeConfig;
+    }
+    else if (_neutralConfig)
+    {
+        config = _neutralConfig;
+    }
+
+    if (!config)
+    {
+        return; // No valid configuration found
+    }
+
+    if (config->UseAuctionCount)
+    {
+        // Keep the last N auctions for each item
+        WorldDatabase.Execute(
+            "DELETE FROM `mod_auctionhousebot_auction_history` "
+            "WHERE id NOT IN ("
+            "SELECT id FROM ("
+            "SELECT id FROM `mod_auctionhousebot_auction_history` "
+            "ORDER BY `timestamp` DESC "
+            "LIMIT {}"
+            ") AS temp)", config->AuctionCount);
+    }
+    else
+    {
+        // Remove auction history entries older than the specified number of days
+        WorldDatabase.Execute(
+            "DELETE FROM `mod_auctionhousebot_auction_history` "
+            "WHERE `timestamp` < NOW() - INTERVAL {} DAY", config->Days);
     }
 }
