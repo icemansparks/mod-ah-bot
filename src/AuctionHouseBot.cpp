@@ -1117,11 +1117,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
                 }
             }
 
-            baseBuyoutPrice = baseBuyoutPrice * urand(config->GetMinPrice(prototype->Quality), config->GetMaxPrice(prototype->Quality));
-            baseBuyoutPrice = baseBuyoutPrice / 100;
-
-            baseBidPrice    = baseBuyoutPrice * urand(config->GetMinBidPrice(prototype->Quality), config->GetMaxBidPrice(prototype->Quality));
-            baseBidPrice    = baseBidPrice / 100;
+            baseBuyoutPrice = baseBuyoutPrice * urand(config->GetMinPrice(prototype->Quality), config->GetMaxPrice(prototype->Quality)) / 100;
+            baseBidPrice    = baseBuyoutPrice * urand(config->GetMinBidPrice(prototype->Quality), config->GetMaxBidPrice(prototype->Quality)) / 100;
         }
 
         // Adjust prices based on moving average prices
