@@ -2078,7 +2078,7 @@ void AuctionHouseBot::CleanupOldAuctionHistory()
     if (result)
     {
         Field* fields = result->Fetch();
-        _lastCleanupTime = fields[0].GetUInt32();
+        _lastCleanupTime = fields[0].Get<uint32>();
     }
     else
     {
