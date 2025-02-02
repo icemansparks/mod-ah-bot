@@ -921,28 +921,28 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 uint32 SelectItem(AHBConfig* config, AuctionHouseObject* auctionHouse, uint32& choice)
 {
     uint32 itemID = 0;
-    std::vector<std::pair<std::vector<uint32>*, uint32>> bins = {
-        {&config->GreyItemsBin, AHB_GREY_I},
-        {&config->GreyTradeGoodsBin, AHB_GREY_TG},
-        {&config->WhiteItemsBin, AHB_WHITE_I},
-        {&config->WhiteTradeGoodsBin, AHB_WHITE_TG},
-        {&config->GreenItemsBin, AHB_GREEN_I},
-        {&config->GreenTradeGoodsBin, AHB_GREEN_TG},
-        {&config->BlueItemsBin, AHB_BLUE_I},
-        {&config->BlueTradeGoodsBin, AHB_BLUE_TG},
-        {&config->PurpleItemsBin, AHB_PURPLE_I},
-        {&config->PurpleTradeGoodsBin, AHB_PURPLE_TG},
-        {&config->OrangeItemsBin, AHB_ORANGE_I},
-        {&config->OrangeTradeGoodsBin, AHB_ORANGE_TG},
-        {&config->YellowItemsBin, AHB_YELLOW_I},
-        {&config->YellowTradeGoodsBin, AHB_YELLOW_TG},
+    std::vector<std::pair<std::reference_wrapper<std::vector<uint32>>, uint32>> bins = {
+        {std::ref(config->GreyItemsBin), AHB_GREY_I},
+        {std::ref(config->GreyTradeGoodsBin), AHB_GREY_TG},
+        {std::ref(config->WhiteItemsBin), AHB_WHITE_I},
+        {std::ref(config->WhiteTradeGoodsBin), AHB_WHITE_TG},
+        {std::ref(config->GreenItemsBin), AHB_GREEN_I},
+        {std::ref(config->GreenTradeGoodsBin), AHB_GREEN_TG},
+        {std::ref(config->BlueItemsBin), AHB_BLUE_I},
+        {std::ref(config->BlueTradeGoodsBin), AHB_BLUE_TG},
+        {std::ref(config->PurpleItemsBin), AHB_PURPLE_I},
+        {std::ref(config->PurpleTradeGoodsBin), AHB_PURPLE_TG},
+        {std::ref(config->OrangeItemsBin), AHB_ORANGE_I},
+        {std::ref(config->OrangeTradeGoodsBin), AHB_ORANGE_TG},
+        {std::ref(config->YellowItemsBin), AHB_YELLOW_I},
+        {std::ref(config->YellowTradeGoodsBin), AHB_YELLOW_TG},
     };
 
     for (auto& bin : bins)
     {
-        if (itemID == 0 && bin.first->size() > 0 && config->GetItemCounts(bin.second) < config->GetMaximum(bin.second))
+        if (itemID == 0 && bin.first.get().size() > 0 && config->GetItemCounts(bin.second) < config->GetMaximum(bin.second))
         {
-            itemID = getElement(*bin.first, urand(0, bin.first->size() - 1), _id, config->DuplicatesCount, auctionHouse);
+            itemID = getElement(bin.first.get(), urand(0, bin.first.get().size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = bin.second;
         }
     }
