@@ -64,19 +64,8 @@ private:
     time_t     _lastrun_h_sec_Buy;
     time_t     _lastrun_n_sec_Buy;
 
-    // Initialize _lastCleanupTime from the database
-    QueryResult result = WorldDatabase.Query("SELECT last_cleanup_time FROM mod_auctionhousebot_cleanup_time WHERE id = 1");
-    if (result)
-    {
-        Field* fields = result->Fetch();
-        _lastCleanupTime = fields[0].GetUInt32();
-    }
-    else
-    {
-        // If no record exists, insert a new one with the current time
-        WorldDatabase.Execute("INSERT INTO mod_auctionhousebot_cleanup_time (id, last_cleanup_time) VALUES (1, NOW())");
-        _lastCleanupTime = time(NULL);
-    }
+    // Last cleanup time
+    time_t _lastCleanupTime;
 
     // Main operations
     void Sell(Player *AHBplayer, AHBConfig *config);
