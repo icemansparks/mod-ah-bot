@@ -2061,23 +2061,47 @@ void AuctionHouseBot::CleanupOldAuctionHistory()
         return; // No valid configuration found
     }
 
-    if (config->UseAuctionCount)
+    // Read the last cleanup time from the database
+    QueryResult result = WorldDatabase.Query("SELECT last_cleanup_time FROM mod_auctionhousebot_cleanup_time WHERE id = 1");
+    if (result)
     {
-        // Keep the last N auctions for each item
-        WorldDatabase.Execute(
-            "DELETE FROM `mod_auctionhousebot_auction_history` "
-            "WHERE id NOT IN ("
-            "SELECT id FROM ("
-            "SELECT id FROM `mod_auctionhousebot_auction_history` "
-            "ORDER BY `timestamp` DESC "
-            "LIMIT {}"
-            ") AS temp)", config->AuctionCount);
+        Field* fields = result->Fetch();
+        _lastCleanupTime = fields[0].GetUInt32();
     }
     else
     {
-        // Remove auction history entries older than the specified number of days
-        WorldDatabase.Execute(
-            "DELETE FROM `mod_auctionhousebot_auction_history` "
-            "WHERE `timestamp` < NOW() - INTERVAL {} DAY", config->Days);
+        // If no record exists, insert a new one with the current time
+        WorldDatabase.Execute("INSERT INTO mod_auctionhousebot_cleanup_time (id, last_cleanup_time) VALUES (1, NOW())");
+        _lastCleanupTime = time(NULL);
+    }
+
+    time_t currentTime = time(NULL);
+
+    // Perform cleanup every 24 hours
+    if (difftime(currentTime, _lastCleanupTime) >= 24 * 60 * 60)
+    {
+        if (config->UseAuctionCount)
+        {
+            // Keep the last N auctions for each item
+            WorldDatabase.Execute(
+                "DELETE FROM `mod_auctionhousebot_auction_history` "
+                "WHERE id NOT IN ("
+                "SELECT id FROM ("
+                "SELECT id FROM `mod_auctionhousebot_auction_history` "
+                "ORDER BY `timestamp` DESC "
+                "LIMIT {}"
+                ") AS temp)", config->AuctionCount);
+        }
+        else
+        {
+            // Remove auction history entries older than the specified number of days
+            WorldDatabase.Execute(
+                "DELETE FROM `mod_auctionhousebot_auction_history` "
+                "WHERE `timestamp` < NOW() - INTERVAL {} DAY", config->Days);
+        }
+
+        // Update the last cleanup time in the database
+        WorldDatabase.Execute("UPDATE mod_auctionhousebot_cleanup_time SET last_cleanup_time = NOW() WHERE id = 1");
+        _lastCleanupTime = currentTime;
     }
 }
