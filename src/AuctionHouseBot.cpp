@@ -749,8 +749,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         // Update Auctions count for current Bot
         auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
-        //LOG_ERROR("module", "AHBot [{}]: minAuctionsPerBot: {}", _id, minAuctionsPerBot);
-        //LOG_ERROR("module", "AHBot [{}]: maxAuctionsPerBot: {} current_auctions: {}", _id, maxAuctionsPerBot, auctions);
 
         if (auctions >= maxAuctionsPerBot)
         {
