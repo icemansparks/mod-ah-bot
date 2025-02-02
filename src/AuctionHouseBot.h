@@ -108,6 +108,12 @@ public:
     bool IsItemInAuctionHouse(uint32 itemID, uint32 ahID);
     std::vector<uint32> GetAllItemIDs(uint32 ahID);
 
+    uint32 SelectItem(AHBConfig* config, AuctionHouseObject* auctionHouse, uint32& choice);
+    void CalculatePrices(AHBConfig* config, ItemTemplate const* prototype, uint32 itemID, uint64& buyoutPrice, uint64& bidPrice);
+    void CreateAndSaveAuctionEntry(AuctionHouseObject* auctionHouse, Item* item, uint64 bidPrice, uint64 buyoutPrice, uint32 stackCount, uint32 dep, uint32 etime, AuctionHouseEntry const* ahEntry, Player* AHBplayer);
+    uint32 DetermineStackSize(AHBConfig* config, ItemTemplate const* prototype, Item* item);
+
+
 };
 
 std::string JoinGUIDs(const std::vector<uint32>& guids);
