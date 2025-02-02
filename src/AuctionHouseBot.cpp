@@ -83,11 +83,17 @@ AuctionHouseBot::~AuctionHouseBot()
     // Nothing
 }
 
-uint32 AuctionHouseBot::getElement(std::set<uint32> set, int index, uint32 botId, uint32 maxDup, AuctionHouseObject* auctionHouse)
+uint32 getElement(const std::vector<uint32>& bin, uint32 index, uint32 botId, uint32 maxDup, AuctionHouseObject* auctionHouse)
 {
-    std::set<uint32>::iterator it = set.begin();
-    std::advance(it, index);
+    // Ensure the index is within bounds
+    if (index >= bin.size())
+    {
+        return 0; // Return 0 if the index is out of bounds
+    }
 
+    uint32 itemID = bin[index];
+
+    // Check for duplicates if necessary
     if (maxDup > 0)
     {
         uint32 noStacks = 0;
@@ -98,7 +104,7 @@ uint32 AuctionHouseBot::getElement(std::set<uint32> set, int index, uint32 botId
 
             if (Aentry->owner.GetCounter() == botId)
             {
-                if (*it == Aentry->item_template)
+                if (itemID == Aentry->item_template)
                 {
                     noStacks++;
                 }
@@ -107,11 +113,11 @@ uint32 AuctionHouseBot::getElement(std::set<uint32> set, int index, uint32 botId
 
         if (noStacks >= maxDup)
         {
-            return 0;
+            return 0; // Return 0 if the item is already listed enough times
         }
     }
 
-    return *it;
+    return itemID;
 }
 
 uint32 AuctionHouseBot::getStackCount(AHBConfig* config, uint32 max)
@@ -915,28 +921,28 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 uint32 SelectItem(AHBConfig* config, AuctionHouseObject* auctionHouse, uint32& choice)
 {
     uint32 itemID = 0;
-    std::vector<std::pair<std::vector<uint32>, uint32>> bins = {
-        {config->GreyItemsBin, AHB_GREY_I},
-        {config->GreyTradeGoodsBin, AHB_GREY_TG},
-        {config->WhiteItemsBin, AHB_WHITE_I},
-        {config->WhiteTradeGoodsBin, AHB_WHITE_TG},
-        {config->GreenItemsBin, AHB_GREEN_I},
-        {config->GreenTradeGoodsBin, AHB_GREEN_TG},
-        {config->BlueItemsBin, AHB_BLUE_I},
-        {config->BlueTradeGoodsBin, AHB_BLUE_TG},
-        {config->PurpleItemsBin, AHB_PURPLE_I},
-        {config->PurpleTradeGoodsBin, AHB_PURPLE_TG},
-        {config->OrangeItemsBin, AHB_ORANGE_I},
-        {config->OrangeTradeGoodsBin, AHB_ORANGE_TG},
-        {config->YellowItemsBin, AHB_YELLOW_I},
-        {config->YellowTradeGoodsBin, AHB_YELLOW_TG},
+    std::vector<std::pair<std::vector<uint32>*, uint32>> bins = {
+        {&config->GreyItemsBin, AHB_GREY_I},
+        {&config->GreyTradeGoodsBin, AHB_GREY_TG},
+        {&config->WhiteItemsBin, AHB_WHITE_I},
+        {&config->WhiteTradeGoodsBin, AHB_WHITE_TG},
+        {&config->GreenItemsBin, AHB_GREEN_I},
+        {&config->GreenTradeGoodsBin, AHB_GREEN_TG},
+        {&config->BlueItemsBin, AHB_BLUE_I},
+        {&config->BlueTradeGoodsBin, AHB_BLUE_TG},
+        {&config->PurpleItemsBin, AHB_PURPLE_I},
+        {&config->PurpleTradeGoodsBin, AHB_PURPLE_TG},
+        {&config->OrangeItemsBin, AHB_ORANGE_I},
+        {&config->OrangeTradeGoodsBin, AHB_ORANGE_TG},
+        {&config->YellowItemsBin, AHB_YELLOW_I},
+        {&config->YellowTradeGoodsBin, AHB_YELLOW_TG},
     };
 
     for (auto& bin : bins)
     {
-        if (itemID == 0 && bin.first.size() > 0 && config->GetItemCounts(bin.second) < config->GetMaximum(bin.second))
+        if (itemID == 0 && bin.first->size() > 0 && config->GetItemCounts(bin.second) < config->GetMaximum(bin.second))
         {
-            itemID = getElement(bin.first, urand(0, bin.first.size() - 1), _id, config->DuplicatesCount, auctionHouse);
+            itemID = getElement(*bin.first, urand(0, bin.first->size() - 1), _id, config->DuplicatesCount, auctionHouse);
             choice = bin.second;
         }
     }

@@ -77,7 +77,7 @@ private:
     uint32 getNofAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse, ObjectGuid guid);
     uint32 getStackCount(AHBConfig* config, uint32 max);
     uint32 getElapsedTime(uint32 timeClass);
-    uint32 getElement(std::set<uint32> set, int index, uint32 botId, uint32 maxDup, AuctionHouseObject* auctionHouse);
+    uint32 getElement(const std::vector<uint32>& bin, uint32 index, uint32 botId, uint32 maxDup, AuctionHouseObject* auctionHouse);
     uint32 getTotalAuctions(AHBConfig* config, AuctionHouseObject* auctionHouse);
 
     // Helper function to calculate the median
