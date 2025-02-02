@@ -647,8 +647,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         aboveMax = true;
         if (config->DebugOutSeller)
         {
-            std::string guidStr = AHBplayer->GetGUID().ToString();
-            LOG_ERROR("module", "AHBot [{}]: Auctions above maximum for bot {}", _id, guidStr);
+            LOG_ERROR("module", "AHBot [{}]: Auctions above maximum for bot {}", _id, AHBplayer->GetGUID().ToString());
         }
         return;
     }
@@ -842,8 +841,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         // Determine the price
         uint64 buyoutPrice = 0;
-        uint64 bidPrice    = 0;
-        uint32 stackCount  = 1;
+        uint64 bidPrice = 0;
+        uint32 stackCount = DetermineStackSize(config, prototype, item);
         uint64 baseBuyoutPrice = 0;
         uint64 baseBidPrice = 0;
 
@@ -903,52 +902,14 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
         }
 
-        // Determine the stack size
-        if (config->GetMaxStack(prototype->Quality) > 1 && item->GetMaxStackCount() > 1)
-        {
-            stackCount = minValue(getStackCount(config, item->GetMaxStackCount()), config->GetMaxStack(prototype->Quality));
-        }
-        else if (config->GetMaxStack(prototype->Quality) == 0 && item->GetMaxStackCount() > 1)
-        {
-            stackCount = getStackCount(config, item->GetMaxStackCount());
-        }
-        else
-        {
-            stackCount = 1;
-        }
-
-        item->SetCount(stackCount);
-
         // Determine the auction time
         uint32 etime = getElapsedTime(config->ElapsingTimeClass);
 
         // Determine the deposit
         uint32 dep   = sAuctionMgr->GetAuctionDeposit(ahEntry, etime, item, stackCount);
 
-        // Perform the auction
-        auto trans = CharacterDatabase.BeginTransaction();
-
-        AuctionEntry* auctionEntry      = new AuctionEntry();
-        auctionEntry->Id                = sObjectMgr->GenerateAuctionID();
-        auctionEntry->houseId           = AuctionHouseId(config->GetAHID());
-        auctionEntry->item_guid         = item->GetGUID();
-        auctionEntry->item_template     = item->GetEntry();
-        auctionEntry->itemCount         = item->GetCount();
-        auctionEntry->owner             = AHBplayer->GetGUID();
-        auctionEntry->startbid          = bidPrice * stackCount;
-        auctionEntry->buyout            = buyoutPrice * stackCount;
-        auctionEntry->bid               = 0;
-        auctionEntry->deposit           = dep;
-        auctionEntry->expire_time       = (time_t)etime + time(NULL);
-        auctionEntry->auctionHouseEntry = ahEntry;
-
-        item->SaveToDB(trans);
-        item->RemoveFromUpdateQueueOf(AHBplayer);
-        sAuctionMgr->AddAItem(item);
-        auctionHouse->AddAuction(auctionEntry);
-        auctionEntry->SaveToDB(trans);
-
-        CharacterDatabase.CommitTransaction(trans);
+       // Perform the auction
+        CreateAndSaveAuctionEntry(auctionHouse, item, bidPrice, buyoutPrice, stackCount, dep, etime, ahEntry, AHBplayer);
 
         // Increments the number of items presents in the auction
         switch (choice)
@@ -1029,6 +990,49 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         LOG_INFO("module", "AHBot [{}]: auctionhouse {}, req={}, sold={}, aboveMin={}, aboveMax={}, loopBrk={}, noNeed={}, tooMany={}, binEmpty={}, err={}", _id, config->GetAHID(), items, noSold, aboveMin, aboveMax, loopBrk, noNeed, tooMany, binEmpty, err);
     }
 
+}
+
+void CreateAndSaveAuctionEntry(AuctionHouseObject* auctionHouse, Item* item, uint64 bidPrice, uint64 buyoutPrice, uint32 stackCount, uint32 dep, uint32 etime, AuctionHouseEntry const* ahEntry, Player* AHBplayer)
+{
+    auto trans = CharacterDatabase.BeginTransaction();
+
+    AuctionEntry* auctionEntry = new AuctionEntry();
+    auctionEntry->Id = sObjectMgr->GenerateAuctionID();
+    auctionEntry->houseId = AuctionHouseId(config->GetAHID());
+    auctionEntry->item_guid = item->GetGUID();
+    auctionEntry->item_template = item->GetEntry();
+    auctionEntry->itemCount = item->GetCount();
+    auctionEntry->owner = AHBplayer->GetGUID();
+    auctionEntry->startbid = bidPrice * stackCount;
+    auctionEntry->buyout = buyoutPrice * stackCount;
+    auctionEntry->bid = 0;
+    auctionEntry->deposit = dep;
+    auctionEntry->expire_time = (time_t)etime + time(NULL);
+    auctionEntry->auctionHouseEntry = ahEntry;
+
+    item->SaveToDB(trans);
+    item->RemoveFromUpdateQueueOf(AHBplayer);
+    sAuctionMgr->AddAItem(item);
+    auctionHouse->AddAuction(auctionEntry);
+    auctionEntry->SaveToDB(trans);
+
+    CharacterDatabase.CommitTransaction(trans);
+}
+
+uint32 DetermineStackSize(AHBConfig* config, ItemTemplate const* prototype, Item* item)
+{
+    if (config->GetMaxStack(prototype->Quality) > 1 && item->GetMaxStackCount() > 1)
+    {
+        return minValue(getStackCount(config, item->GetMaxStackCount()), config->GetMaxStack(prototype->Quality));
+    }
+    else if (config->GetMaxStack(prototype->Quality) == 0 && item->GetMaxStackCount() > 1)
+    {
+        return getStackCount(config, item->GetMaxStackCount());
+    }
+    else
+    {
+        return 1;
+    }
 }
 
 // =============================================================================
