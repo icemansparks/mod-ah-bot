@@ -760,34 +760,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         uint32 choice = 0;
         uint32 loopbreaker = 0;
 
-        // Get the item template (improved loop)
-        std::vector<std::pair<std::vector<uint32>&, uint32>> bins = {
-            {config->GreyItemsBin, AHB_GREY_I},
-            {config->GreyTradeGoodsBin, AHB_GREY_TG},
-            {config->WhiteItemsBin, AHB_WHITE_I},
-            {config->WhiteTradeGoodsBin, AHB_WHITE_TG},
-            {config->GreenItemsBin, AHB_GREEN_I},
-            {config->GreenTradeGoodsBin, AHB_GREEN_TG},
-            {config->BlueItemsBin, AHB_BLUE_I},
-            {config->BlueTradeGoodsBin, AHB_BLUE_TG},
-            {config->PurpleItemsBin, AHB_PURPLE_I},
-            {config->PurpleTradeGoodsBin, AHB_PURPLE_TG},
-            {config->OrangeItemsBin, AHB_ORANGE_I},
-            {config->OrangeTradeGoodsBin, AHB_ORANGE_TG},
-            {config->YellowItemsBin, AHB_YELLOW_I},
-            {config->YellowTradeGoodsBin, AHB_YELLOW_TG},
-        };
-
-        for (auto& bin : bins)
-        {
-            if (itemID == 0 && bin.first.size() > 0 && config->GetItemCounts(bin.second) < config->GetMaximum(bin.second))
-            {
-                itemID = getElement(bin.first, urand(0, bin.first.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                choice = bin.second;
-            }
-        }
-
-        /* OLD LOOP
         while (itemID == 0 && loopbreaker <= AUCTION_HOUSE_BOT_LOOP_BREAKER)
         {
             loopbreaker++;
@@ -1024,7 +996,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
                 break;
             }
         }
-        */
+
         if (itemID == 0)
         {
             loopBrk++;
