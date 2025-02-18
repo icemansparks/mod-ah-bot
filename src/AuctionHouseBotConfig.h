@@ -364,10 +364,13 @@ public:
 
     uint32 GetAllianceBiddingInterval() const { return _allianceBiddingInterval; }
     uint32 GetAllianceBidsPerInterval() const { return _allianceBidsPerInterval; }
+
     uint32 GetHordeBiddingInterval() const { return _hordeBiddingInterval; }
     uint32 GetHordeBidsPerInterval() const { return _hordeBidsPerInterval; }
+
     uint32 GetNeutralBiddingInterval() const { return _neutralBiddingInterval; }
     uint32 GetNeutralBidsPerInterval() const { return _neutralBidsPerInterval; }
+
     uint32 GetAllianceSellingInterval() const { return _allianceSellingInterval; }
     uint32 GetHordeSellingInterval() const { return _hordeSellingInterval; }
     uint32 GetNeutralSellingInterval() const { return _neutralSellingInterval; }

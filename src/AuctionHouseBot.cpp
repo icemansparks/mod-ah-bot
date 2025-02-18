@@ -254,7 +254,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
     if(config->DebugOutBuyer)
     {
-        LOG_INFO("module", "AHBot [{}]: Found {} possible bids", _id, possibleBids.size());
+        LOG_INFO("module", "AHBot [{}]: Found {} possible bids", _id, auctionsGuidsToConsider.size());
     }
 
     // If it's not possible to bid stop here
@@ -264,7 +264,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     {
         if (config->DebugOutBuyer)
         {
-            LOG_INFO("module", "AHBot [{}]: no auctions to bid on has been recovered in auction house {}", _id, auctionHouseID);
+            LOG_INFO("module", "AHBot [{}]: no auctions to bid on has been recovered in auction house {}", _id, config->GetAHID());
         }
 
         return;
@@ -291,7 +291,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
     if (config->TraceBuyer)
     {
-        LOG_INFO("module", "AHBot [{}]: Considering {} auctions per interval to bid on.", _id, config->GetBidsPerInterval());
+        LOG_INFO("module", "AHBot [{}]: Considering {} auctions per interval to bid on.", _id, bidsPerInterval);
     }
 
     for (uint32 count = 1; count <= bidsPerInterval; ++count)
@@ -597,9 +597,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 LOG_INFO("module", "AHBot [{}]: Bought , itemid={}, ah={}, item={}, start={}, current={}, buyout={}", _id, prototype->ItemId, AuctionHouseId(auction->GetHouseId()), auction->item_template, auction->startbid, currentPrice, auction->buyout);
             }
         }
-
-        // Prevent to bid again on the same auction
-        auctionsGuidsToConsider.erase(it);
     }
 
     LOG_INFO("module", "AHBot [{}]: Completed buying process", _id);
