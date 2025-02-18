@@ -25,6 +25,7 @@
 #include "WorldSession.h"
 #include "GameTime.h"
 #include "DatabaseEnv.h"
+#include "ScriptMgr.h"
 #include "Config.h"
 #include "Player.h"
 #include "AuctionHouseSearcher.h"
@@ -40,6 +41,7 @@
 #include <utility>
 
 #include "AuctionHouseBotCommon.h"
+#include "AuctionHouseSearcher.h"
 
 using namespace std;
 using CharacterDatabaseQueryHolder = SQLQueryHolder<CharacterDatabaseConnection>;
@@ -209,7 +211,7 @@ uint32 AuctionHouseBot::getTotalAuctions(AHBConfig* config, AuctionHouseObject* 
 }
 
 // =============================================================================
-// This routine performs the bidding operations for the bot
+// This routine performs the bidding/buyout operations for the bot
 // =============================================================================
 
 void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* session)
@@ -221,32 +223,34 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         return;
     }
 
-    if(config->DebugOutBuyer)
-    {
-        LOG_INFO("module", "AHBot [{}]: Starting buying process", _id);
-    }
+    //
+    // Retrieve items not owned by the bot and not bought/bidded on by the bot
+    //
 
-    // Retrieve items not owned by the bot and not bought by the bot
-    std::string botGUIDsStr = JoinGUIDs(config->GetBotGUIDs());
-    uint32 auctionHouseID = config->GetAHID();
-    LOG_INFO("module", "AHBot [{}]: Querying auction house {} for items not owned by bots", _id, auctionHouseID);
-    QueryResult result = CharacterDatabase.Query("SELECT id FROM auctionhouse WHERE itemowner NOT IN ({}) AND buyguid NOT IN ({}) AND houseid = {}", botGUIDsStr, botGUIDsStr, auctionHouseID);
+    QueryResult ahContentQueryResult = CharacterDatabase.Query("SELECT id FROM auctionhouse WHERE houseid={} AND itemowner<>{} AND buyguid<>{}", config->GetAHID(), _id, _id);
 
-    if (!result || result->GetRowCount() == 0)
+    if (!ahContentQueryResult)
     {
-        LOG_ERROR("module", "AHBot [{}]: No items found to buy in auction house {}. Bot GUIDs: {}", _id, auctionHouseID, botGUIDsStr);
         return;
     }
 
+    if (ahContentQueryResult->GetRowCount() == 0)
+    {
+        return;
+    }
+
+    //
     // Fetches content of selected AH to look for possible bids
-    AuctionHouseObject* auctionHouse = sAuctionMgr->GetAuctionsMap(config->GetAHFID());
-    std::set<uint32> possibleBids;
+    //
+
+    AuctionHouseObject* auctionHouseObject = sAuctionMgr->GetAuctionsMap(config->GetAHFID());
+    std::vector<uint32> auctionsGuidsToConsider;
 
     do
     {
-        uint32 tmpdata = result->Fetch()->Get<uint32>();
-        possibleBids.insert(tmpdata);
-    } while (result->NextRow());
+        uint32 autionGuid = ahContentQueryResult->Fetch()->Get<uint32>();
+        auctionsGuidsToConsider.push_back(autionGuid);
+    } while (ahContentQueryResult->NextRow());
 
     if(config->DebugOutBuyer)
     {
@@ -254,7 +258,9 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     }
 
     // If it's not possible to bid stop here
-    if (possibleBids.empty())
+    //
+
+    if (auctionsGuidsToConsider.empty())
     {
         if (config->DebugOutBuyer)
         {
@@ -281,6 +287,13 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     }
 
     // Perform the operation for a maximum amount of bids attempts configured
+    //
+
+    if (config->TraceBuyer)
+    {
+        LOG_INFO("module", "AHBot [{}]: Considering {} auctions per interval to bid on.", _id, config->GetBidsPerInterval());
+    }
+
     for (uint32 count = 1; count <= bidsPerInterval; ++count)
     {
         if(config->DebugOutBuyer)
@@ -289,48 +302,29 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         }
 
         // Choose a random auction from possible auctions
-        uint32 randBid = 0;
-        if(config->DebugOutBuyer)
-        {
-            LOG_INFO("module", "AHBot [{}]: possibleBids.size: {}", _id, possibleBids.size());
-        }
+        //
 
-        if (possibleBids.size() > 0)
-        {
-            if (possibleBids.size() > 1)
-            {
-                if(config->DebugOutBuyer)
-                {
-                    LOG_INFO("module", "AHBot [{}]: possibleBids.size: {}", _id, possibleBids.size());
-                }
-                randBid = urand(0, possibleBids.size() - 1);
-            }
-            else
-            {
-                randBid = 0;
-            }
-            if(config->DebugOutBuyer)
-            {
-                LOG_INFO("module", "AHBot [{}]: Random bid: {}", _id, randBid);
-            }
-        }
-        else
-        {
-            if(config->DebugOutBuyer)
-            {
-                LOG_ERROR("module", "AHBot: No possible bids available");
-            }
-            continue;
-        }
+        uint32 randomIndex = urand(0, auctionsGuidsToConsider.size() - 1);
 
-        std::set<uint32>::iterator it = possibleBids.begin();
-        std::advance(it, randBid);
+        std::vector<uint32>::iterator itBegin = auctionsGuidsToConsider.begin();
+        //std::advance(it, randomIndex);
 
-        AuctionEntry* auction = auctionHouse->GetAuction(*it);
+        uint32 auctionID = auctionsGuidsToConsider.at(randomIndex);
+
+        AuctionEntry* auction = auctionHouseObject->GetAuction(auctionID);
+
+        //
+        // Prevent to bid again on the same auction
+        //
+
+        auctionsGuidsToConsider.erase(itBegin + randomIndex);
 
         if (!auction)
         {
-            LOG_ERROR("module", "AHBot [{}]: Could not find auction with ID {} in auction house {}", _id, *it, auctionHouseID);
+            if (config->DebugOutBuyer)
+            {
+                LOG_ERROR("module", "AHBot [{}]: Auction id: {} Possible entry to buy/bid from AH pool is invalid, this should not happen, moving on next auciton", _id, auctionID);
+            }
             continue;
         }
 
@@ -356,11 +350,15 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         // Get the item prototype
         ItemTemplate const* prototype = sObjectMgr->GetItemTemplate(auction->item_template);
-        if (!prototype)
-        {
-            LOG_ERROR("module", "AHBot [{}]: item {} has no prototype", _id, auction->item_guid.ToString());
-            continue;
-        }
+
+        //
+        // Determine current price.
+        //
+        uint32 currentPrice = auction->bid ? auction->bid : auction->startbid;
+
+         //
+        // Determine maximum bid and skip auctions with too high a currentPrice.
+        //
 
         // Get price overrides
         auto [avgPrice, minPrice] = config->GetPriceOverrideForItem(prototype->ItemId);
@@ -372,19 +370,48 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         // Calculate the bid and buyout prices
         uint32 currentprice = auction->bid ? auction->bid : auction->startbid;
         double bidrate = static_cast<double>(urand(1, 100)) / 100;
-        long double bidMax = 0;
+        long double maximumBid = 0;
 
-        LOG_INFO("module", "AHBot [{}]: Current price: {}", _id, currentprice);
-        LOG_INFO("module", "AHBot [{}]: Bid rate: {}", _id, bidrate);
-
-        // Check that bid has an acceptable value and take bid based on vendorprice, stacksize and quality
-        // UseBuyPriceForBuyer = 1 -> Use Sell Price
-        if (config->BuyMethod)
+        if (config->TraceBuyer)
         {
-            LOG_INFO("module", "AHBot [{}]: Buy method", _id);
+            LOG_INFO("module", "-------------------------------------------------");
+            LOG_INFO("module", "AHBot [{}]: Info for Auction #{}:", _id, auction->Id);
+            LOG_INFO("module", "AHBot [{}]: AuctionHouse: {}", _id, auction->GetHouseId());
+            LOG_INFO("module", "AHBot [{}]: Owner: {}", _id, auction->owner.ToString());
+            LOG_INFO("module", "AHBot [{}]: Bidder: {}", _id, auction->bidder.ToString());
+            LOG_INFO("module", "AHBot [{}]: Starting Bid: {}", _id, auction->startbid);
+            LOG_INFO("module", "AHBot [{}]: Current Bid: {}", _id, currentPrice);
+            LOG_INFO("module", "AHBot [{}]: Buyout: {}", _id, auction->buyout);
+            LOG_INFO("module", "AHBot [{}]: Deposit: {}", _id, auction->deposit);
+            LOG_INFO("module", "AHBot [{}]: Expire Time: {}", _id, uint32(auction->expire_time));
+            LOG_INFO("module", "AHBot [{}]: Bid Max: {}", _id, maximumBid);
+            LOG_INFO("module", "AHBot [{}]: Item GUID: {}", _id, auction->item_guid.ToString());
+            LOG_INFO("module", "AHBot [{}]: Item Template: {}", _id, auction->item_template);
+            LOG_INFO("module", "AHBot [{}]: Item ID: {}", _id, prototype->ItemId);
+            LOG_INFO("module", "AHBot [{}]: Buy Price: {}", _id, prototype->BuyPrice);
+            LOG_INFO("module", "AHBot [{}]: Sell Price: {}", _id, prototype->SellPrice);
+            LOG_INFO("module", "AHBot [{}]: Bonding: {}", _id, prototype->Bonding);
             LOG_INFO("module", "AHBot [{}]: Quality: {}", _id, prototype->Quality);
+            LOG_INFO("module", "AHBot [{}]: Item Level: {}", _id, prototype->ItemLevel);
+            LOG_INFO("module", "AHBot [{}]: Ammo Type: {}", _id, prototype->AmmoType);
+            LOG_INFO("module", "-------------------------------------------------");
+        }
 
-            // Check if the quality is supported
+        if (currentPrice > maximumBid)
+        {
+            if (config->TraceBuyer)
+            {
+                LOG_INFO("module", "AHBot [{}]: Current price too high, skipped.", _id);
+            }
+            continue;
+        }
+
+        //
+        // Check that bid has an acceptable value and take bid based on vendorprice, stacksize and quality
+        //
+
+        if (config->UseBuyPriceForBuyer)
+        {
             if (prototype->Quality <= AHB_MAX_QUALITY)
             {
                 // Calculate the bid based on the quality
@@ -392,19 +419,11 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 //if (currentprice < SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
 
                 uint64 maxPriceToUse = maxPrice > 0 ? (maxPrice * pItem->GetCount()) : (SellPriceValue * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
-
                 if (currentprice < maxPriceToUse)
                 {
-                    bidMax = maxPriceToUse;
-                    //bidMax = SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality);
-                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, maxPriceToUse,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
-                    LOG_INFO("module", "AHBot [{}]: Bid Max: {}", _id, bidMax);
+                    maximumBid = maxPriceToUse;
                 }
-                else
-                {
-                    LOG_INFO("module", "AHBot [{}]: SellPrice = {} pItem->GetCount = {} config->GetBuyerPrice(prototype->Quality) = {}", _id, maxPriceToUse,pItem->GetCount(),config->GetBuyerPrice(prototype->Quality));
-                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, maxPriceToUse);
-                }
+
             }
             else
             {
@@ -416,25 +435,11 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 continue;
             }
         }
-        // UseBuyPriceForBuyer = 0 -> Use Buy Price
         else
         {
-            LOG_INFO("module", "AHBot [{}]: Bid method", _id);
-            LOG_INFO("module", "AHBot [{}]: Quality: {}", _id, prototype->Quality);
-
-            uint64 maxPriceToUse = avgPrice > 0 ? (avgPrice * pItem->GetCount()) : (BuyPriceValue * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
-
             if (prototype->Quality <= AHB_MAX_QUALITY)
             {
-                if (currentprice < maxPriceToUse)
-                {
-                    bidMax = maxPriceToUse;
-                    LOG_INFO("module", "AHBot [{}]: bidMax = {}", _id, bidMax);
-                }
-                else
-                {
-                    LOG_INFO("module", "AHBot [{}]: Current price {} is not less than calculated bid max {}", _id, currentprice, maxPriceToUse);
-                }
+                uint64 maxPriceToUse = avgPrice > 0 ? (avgPrice * pItem->GetCount()) : (BuyPriceValue * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
             }
             else
             {
@@ -447,135 +452,149 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             }
         }
 
+
+        //
         // Recalculate the bid depending on the type of the item
         switch (prototype->Class)
         {
-            // ammo
-        case 6:
-            bidMax = 0;
-            LOG_INFO("module", "AHBot [{}]: Skipping ammo item", _id);
+        case ITEM_CLASS_PROJECTILE:
+            maximumBid = 0;
+            break;
+        case ITEM_CLASS_GENERIC:
+            maximumBid = 0;
+            break;
+        case ITEM_CLASS_MONEY:
+            maximumBid = 0;
+            break;
+        case ITEM_CLASS_PERMANENT:
+            maximumBid = 0;
             break;
         default:
             break;
         }
 
-        // Test the computed bid
-        if (bidMax == 0)
+        //
+        //  Make sure to skip the auction if maximum bid is 0.
+        //
+
+        if (maximumBid == 0)
         {
-            LOG_INFO("module", "AHBot [{}]: Computed bidMax is 0, skipping", _id);
+            if (config->TraceBuyer)
+            {
+                LOG_INFO("module", "AHBot [{}]: Maximum bid value for item class {} is 0, skipped.", _id, prototype->Class);
+            }
             continue;
         }
 
         // Calculate our bid
-        long double bidvalue = currentprice + ((bidMax - currentprice) * bidrate);
-        uint32      bidprice = static_cast<uint32>(bidvalue);
+        //
+
+        double bidRate = static_cast<double>(urand(1, 100)) / 100;
+        double bidValue = currentPrice + ((maximumBid - currentPrice) * bidRate);
+        uint32 bidPrice = static_cast<uint32>(bidValue);
+
 
         // Check our bid is high enough to be valid. If not, correct it to minimum.
-        if ((currentprice + auction->GetAuctionOutBid()) > bidprice)
+        //
+        uint32 minimumOutbid = auction->GetAuctionOutBid();
+        if ((currentPrice + minimumOutbid) > bidPrice)
         {
-            bidprice = currentprice + auction->GetAuctionOutBid();
-            LOG_INFO("module", "AHBot [{}]: Bid price too low, corrected to minimum", _id);
+            bidPrice = currentPrice + minimumOutbid;
         }
 
-        // Print out debug info
+        if (bidPrice > maximumBid)
+        {
+            if (config->TraceBuyer)
+            {
+                LOG_INFO("module", "AHBot [{}]: Bid was above bidMax for item={} AH={}", _id, auction->item_guid.ToString(), config->GetAHID());
+            }
+            bidPrice = maximumBid;
+        }
+
         if (config->DebugOutBuyer)
         {
             LOG_INFO("module", "-------------------------------------------------");
-            LOG_INFO("module", "AHBot [{}]: Info for Auction #{}:", _id, auction->Id);
-            LOG_INFO("module", "AHBot [{}]: AuctionHouse: {}"     , _id, auction->GetHouseId());
-            LOG_INFO("module", "AHBot [{}]: Owner: {}"            , _id, auction->owner.ToString());
-            LOG_INFO("module", "AHBot [{}]: Bidder: {}"           , _id, auction->bidder.ToString());
-            LOG_INFO("module", "AHBot [{}]: Starting Bid: {}"     , _id, auction->startbid);
-            LOG_INFO("module", "AHBot [{}]: Current Bid: {}"      , _id, currentprice);
-            LOG_INFO("module", "AHBot [{}]: Buyout: {}"           , _id, auction->buyout);
-            LOG_INFO("module", "AHBot [{}]: Deposit: {}"          , _id, auction->deposit);
-            LOG_INFO("module", "AHBot [{}]: Expire Time: {}"      , _id, uint32(auction->expire_time));
-            LOG_INFO("module", "AHBot [{}]: Bid Rate: {}"         , _id, bidrate);
-            LOG_INFO("module", "AHBot [{}]: Bid Max: {}"          , _id, bidMax);
-            LOG_INFO("module", "AHBot [{}]: Bid Value: {}"        , _id, bidvalue);
-            LOG_INFO("module", "AHBot [{}]: Bid Price: {}"        , _id, bidprice);
-            LOG_INFO("module", "AHBot [{}]: Item GUID: {}"        , _id, auction->item_guid.ToString());
-            LOG_INFO("module", "AHBot [{}]: Item Template: {}"    , _id, auction->item_template);
-            LOG_INFO("module", "AHBot [{}]: Item Info:"           , _id);
-            LOG_INFO("module", "AHBot [{}]: Item ID: {}"          , _id, prototype->ItemId);
-            LOG_INFO("module", "AHBot [{}]: Buy Price: {}"        , _id, prototype->BuyPrice);
-            LOG_INFO("module", "AHBot [{}]: Sell Price: {}"       , _id, prototype->SellPrice);
-            LOG_INFO("module", "AHBot [{}]: Bonding: {}"          , _id, prototype->Bonding);
-            LOG_INFO("module", "AHBot [{}]: Quality: {}"          , _id, prototype->Quality);
-            LOG_INFO("module", "AHBot [{}]: Item Level: {}"       , _id, prototype->ItemLevel);
-            LOG_INFO("module", "AHBot [{}]: Ammo Type: {}"        , _id, prototype->AmmoType);
+            LOG_INFO("module", "AHBot [{}]: Bid Rate: {}", _id, bidRate);
+            LOG_INFO("module", "AHBot [{}]: Bid Value: {}", _id, bidValue);
+            LOG_INFO("module", "AHBot [{}]: Bid Price: {}", _id, bidPrice);
+            LOG_INFO("module", "AHBot [{}]: Minimum Outbid: {}", _id, minimumOutbid);
             LOG_INFO("module", "-------------------------------------------------");
         }
 
+        //
         // Check whether we do normal bid, or buyout
-        bool bought = false;
+        //
 
-        if ((bidprice < auction->buyout) || (auction->buyout == 0))
+        if ((bidPrice < auction->buyout) || (auction->buyout == 0))
         {
+            //
             // Perform a new bid on the auction
+            //
+
             if (auction->bidder)
             {
                 if (auction->bidder != AHBplayer->GetGUID())
                 {
                     // Mail to last bidder and return their money
+                    //
+
                     auto trans = CharacterDatabase.BeginTransaction();
-                    sAuctionMgr->SendAuctionOutbiddedMail(auction, bidprice, session->GetPlayer(), trans);
-                    CharacterDatabase.CommitTransaction(trans);
+
+                    sAuctionMgr->SendAuctionOutbiddedMail(auction, bidPrice, session->GetPlayer(), trans);
+                    CharacterDatabase.CommitTransaction  (trans);
                 }
             }
 
             auction->bidder = AHBplayer->GetGUID();
-            auction->bid    = bidprice;
-
-            // Save the auction into database
-            CharacterDatabase.Execute("UPDATE auctionhouse SET buyguid = '{}', lastbid = '{}' WHERE id = '{}'", auction->bidder.GetCounter(), auction->bid, auction->Id);
-
-            // Notify the auction house of the bid update
+            auction->bid    = bidPrice;
             sAuctionMgr->GetAuctionHouseSearcher()->UpdateBid(auction);
-            //sAuctionHouseSearcher->UpdateBid(auction);
 
-            LOG_INFO("module", "AHBot [{}]: Placed bid on auction ID {} with bid price {}", _id, auction->Id, bidprice);
+            //
+            // update/save the auction into database
+            //
+
+            //CharacterDatabase.Execute("UPDATE auctionhouse SET buyguid = '{}', lastbid = '{}' WHERE id = '{}'", auction->bidder.GetCounter(), auction->bid, auction->Id);
+            if (config->TraceBuyer)
+            {
+                LOG_INFO("module", "AHBot [{}]: New bid, itemid={}, ah={}, auctionId={} item={}, start={}, current={}, buyout={}", _id, prototype->ItemId, auction->GetHouseId(), auction->Id, auction->item_template, auction->startbid, currentPrice, auction->buyout);
+            }
         }
         else
         {
-            bought = true;
-
+            //
             // Perform the buyout
             auto trans = CharacterDatabase.BeginTransaction();
 
             if ((auction->bidder) && (AHBplayer->GetGUID() != auction->bidder))
             {
-                // Send the mail to the last bidder
+                //
+                //  Mail to last bidder and return their money
+                //
+
                 sAuctionMgr->SendAuctionOutbiddedMail(auction, auction->buyout, session->GetPlayer(), trans);
             }
 
             auction->bidder = AHBplayer->GetGUID();
-            auction->bid    = auction->buyout;
+            auction->bid = auction->buyout;
 
             // Send mails to buyer & seller
             sAuctionMgr->SendAuctionSuccessfulMail(auction, trans);
             sAuctionMgr->SendAuctionWonMail(auction, trans);
 
             // Removes any trace of the item
-            auction->DeleteFromDB(trans);
+            //
 
+            ScriptMgr::instance()->OnAuctionSuccessful(auctionHouseObject, auction);
+            auction->DeleteFromDB(trans);
             sAuctionMgr->RemoveAItem(auction->item_guid);
-            auctionHouse->RemoveAuction(auction);
+            auctionHouseObject->RemoveAuction(auction);
+
 
             CharacterDatabase.CommitTransaction(trans);
-            LOG_INFO("module", "AHBot [{}]: Bought out auction ID {} with buyout price {}", _id, auction->Id, auction->buyout);
-        }
 
-        // Tracing
-        if (config->TraceBuyer)
-        {
-            if (bought)
+            if (config->TraceBuyer)
             {
-                LOG_INFO("module", "AHBot [{}]: Bought , id={}, ah={}, item={}, start={}, current={}, buyout={}", _id, prototype->ItemId, auction->GetHouseId(), auction->item_template, auction->startbid, currentprice, auction->buyout);
-            }
-            else
-            {
-                LOG_INFO("module", "AHBot [{}]: New bid, id={}, ah={}, item={}, start={}, current={}, buyout={}", _id, prototype->ItemId, auction->GetHouseId(), auction->item_template, auction->startbid, currentprice, auction->buyout);
+                LOG_INFO("module", "AHBot [{}]: Bought , itemid={}, ah={}, item={}, start={}, current={}, buyout={}", _id, prototype->ItemId, AuctionHouseId(auction->GetHouseId()), auction->item_template, auction->startbid, currentPrice, auction->buyout);
             }
         }
 
@@ -599,6 +618,21 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
+    //
+    // Check the given limits
+    //
+
+    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
+    uint32 minTotalItems = config->GetMinItems();
+    uint32 maxTotalItems = config->GetMaxItems();
+    uint32 maxItemsToList = 0;
+
+    if (maxTotalItems == 0)
+    {
+        return;
+    }
+
+    //
     // Retrieve the auction house situation
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromFactionTemplate(config->GetAHFID());
     if (!ahEntry)
@@ -614,35 +648,33 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
-    auctionHouse->Update();
+    // don't mess with the AH update let server do it.
+    //auctionHouseObject->Update();
 
-    // Calculate total auctions across all characters
-    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
-    uint32 minItems = config->GetMinItems();
-    uint32 maxItems = config->GetMaxItems();
-    uint32 maxItemsToList = 0;
+    //
+    // Check if we are clear to proceed
+    //
 
-    if (maxItems == 0 || totalAuctions >= maxItems)
-    {
-        if (config->DebugOutSeller)
-        {
-            LOG_ERROR("module", "AHBot [{}]: Total auctions {} at or above maximum {} for AH: {}", _id, totalAuctions, maxItems, config->GetAHID());
-        }
-        return;
-    }
-
-     // Divide maxItems by the number of bots to get the max items per bot
+    // Divide maxItems by the number of bots to get the max items per bot
     uint32 numBots = config->GetBotGUIDs().size();
     uint32 maxAuctionsPerBot = (maxItems + numBots - 1) / numBots;
     uint32 minAuctionsPerBot = (minItems + numBots - 1) / numBots;
-    uint32 auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
 
-    uint32 items = 0;
+    bool   aboveMin = false;
+    bool   aboveMax = false;
+    uint32 nbOfAuctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
 
-    bool aboveMin = false;
-    bool aboveMax = false;
+    uint32 nbItemsToSellThisCycle = 0;
 
-    if (auctions >= maxAuctionsPerBot)
+    if (nbOfAuctions >= minTotalItems)
+    {
+        if (config->DebugOutSeller)
+        {
+            LOG_TRACE("module", "AHBot [{}]: Auctions above minimum", _id);
+        }
+    }
+
+    if (nbOfAuctions >= maxAuctionsPerBot)
     {
         aboveMax = true;
         if (config->DebugOutSeller)
@@ -653,29 +685,28 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
-    // Determine the number of items to list
-     if (totalAuctions < minItems)
-    {
-        // Add new auctions quickly until totalAuctions reach minItems
-        maxItemsToList = minAuctionsPerBot - auctions;
+     if (totalAuctions < minTotalItems)
+     {
+         // Add new auctions quickly until totalAuctions reach minItems
+         maxItemsToList = minAuctionsPerBot - nbOfAuctions;
 
-        // Ensure maxItemsToList is less than or equal to minAuctionsPerBot
-        if (maxItemsToList > minAuctionsPerBot)
-        {
-            maxItemsToList = minAuctionsPerBot;
-        }
+         // Ensure maxItemsToList is less than or equal to minAuctionsPerBot
+         if (maxItemsToList > minAuctionsPerBot)
+         {
+             maxItemsToList = minAuctionsPerBot;
+         }
 
-        items = urand(maxItemsToList, minAuctionsPerBot);
+         nbItemsToSellThisCycle = urand(maxItemsToList, minAuctionsPerBot);
     }
     else
     {
         // Gradually increase the number of auctions with ItemsPerCycle
-        maxItemsToList = maxAuctionsPerBot - auctions;
-        items = config->ItemsPerCycle;
+        maxItemsToList = maxAuctionsPerBot - nbOfAuctions;
+        nbItemsToSellThisCycle = config->ItemsPerCycle;
 
-        if (items > maxItemsToList)
+        if (nbItemsToSellThisCycle > maxItemsToList)
         {
-            items = maxItemsToList;
+            nbItemsToSellThisCycle = maxItemsToList;
         }
     }
 
@@ -689,37 +720,39 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 maxStackSize = config->GetMaxStackSize();
 
     // Retrieve the configuration for this run
-    uint32 greyTGcount   = config->GetMaximum(AHB_GREY_TG);
-    uint32 whiteTGcount  = config->GetMaximum(AHB_WHITE_TG);
-    uint32 greenTGcount  = config->GetMaximum(AHB_GREEN_TG);
-    uint32 blueTGcount   = config->GetMaximum(AHB_BLUE_TG);
-    uint32 purpleTGcount = config->GetMaximum(AHB_PURPLE_TG);
-    uint32 orangeTGcount = config->GetMaximum(AHB_ORANGE_TG);
-    uint32 yellowTGcount = config->GetMaximum(AHB_YELLOW_TG);
+    //
 
-    uint32 greyIcount    = config->GetMaximum(AHB_GREY_I);
-    uint32 whiteIcount   = config->GetMaximum(AHB_WHITE_I);
-    uint32 greenIcount   = config->GetMaximum(AHB_GREEN_I);
-    uint32 blueIcount    = config->GetMaximum(AHB_BLUE_I);
-    uint32 purpleIcount  = config->GetMaximum(AHB_PURPLE_I);
-    uint32 orangeIcount  = config->GetMaximum(AHB_ORANGE_I);
-    uint32 yellowIcount  = config->GetMaximum(AHB_YELLOW_I);
+    uint32 maxGreyTG   = config->GetMaximum(AHB_GREY_TG);
+    uint32 maxWhiteTG  = config->GetMaximum(AHB_WHITE_TG);
+    uint32 maxGreenTG  = config->GetMaximum(AHB_GREEN_TG);
+    uint32 maxBlueTG   = config->GetMaximum(AHB_BLUE_TG);
+    uint32 maxPurpleTG = config->GetMaximum(AHB_PURPLE_TG);
+    uint32 maxOrangeTG = config->GetMaximum(AHB_ORANGE_TG);
+    uint32 maxYellowTG = config->GetMaximum(AHB_YELLOW_TG);
 
-    uint32 greyTGoods    = config->GetItemCounts(AHB_GREY_TG);
-    uint32 whiteTGoods   = config->GetItemCounts(AHB_WHITE_TG);
-    uint32 greenTGoods   = config->GetItemCounts(AHB_GREEN_TG);
-    uint32 blueTGoods    = config->GetItemCounts(AHB_BLUE_TG);
-    uint32 purpleTGoods  = config->GetItemCounts(AHB_PURPLE_TG);
-    uint32 orangeTGoods  = config->GetItemCounts(AHB_ORANGE_TG);
-    uint32 yellowTGoods  = config->GetItemCounts(AHB_YELLOW_TG);
+    uint32 maxGreyI    = config->GetMaximum(AHB_GREY_I);
+    uint32 maxWhiteI   = config->GetMaximum(AHB_WHITE_I);
+    uint32 maxGreenI   = config->GetMaximum(AHB_GREEN_I);
+    uint32 maxBlueI    = config->GetMaximum(AHB_BLUE_I);
+    uint32 maxPurpleI  = config->GetMaximum(AHB_PURPLE_I);
+    uint32 maxOrangeI  = config->GetMaximum(AHB_ORANGE_I);
+    uint32 maxYellowI  = config->GetMaximum(AHB_YELLOW_I);
 
-    uint32 greyItems     = config->GetItemCounts(AHB_GREY_I);
-    uint32 whiteItems    = config->GetItemCounts(AHB_WHITE_I);
-    uint32 greenItems    = config->GetItemCounts(AHB_GREEN_I);
-    uint32 blueItems     = config->GetItemCounts(AHB_BLUE_I);
-    uint32 purpleItems   = config->GetItemCounts(AHB_PURPLE_I);
-    uint32 orangeItems   = config->GetItemCounts(AHB_ORANGE_I);
-    uint32 yellowItems   = config->GetItemCounts(AHB_YELLOW_I);
+    uint32 currentGreyTG    = config->GetItemCounts(AHB_GREY_TG);
+    uint32 currentWhiteTG   = config->GetItemCounts(AHB_WHITE_TG);
+    uint32 currentGreenTG   = config->GetItemCounts(AHB_GREEN_TG);
+    uint32 currentBlueTG    = config->GetItemCounts(AHB_BLUE_TG);
+    uint32 currentPurpleTG  = config->GetItemCounts(AHB_PURPLE_TG);
+    uint32 currentOrangeTG  = config->GetItemCounts(AHB_ORANGE_TG);
+    uint32 currentYellowTG  = config->GetItemCounts(AHB_YELLOW_TG);
+
+    uint32 currentGreyItems     = config->GetItemCounts(AHB_GREY_I);
+    uint32 currentWhiteItems    = config->GetItemCounts(AHB_WHITE_I);
+    uint32 currentGreenItems    = config->GetItemCounts(AHB_GREEN_I);
+    uint32 currentBlueItems     = config->GetItemCounts(AHB_BLUE_I);
+    uint32 currentPurpleItems   = config->GetItemCounts(AHB_PURPLE_I);
+    uint32 currentOrangeItems   = config->GetItemCounts(AHB_ORANGE_I);
+    uint32 currentYellowItems   = config->GetItemCounts(AHB_YELLOW_I);
 
     // Initialize item counts
     std::vector<uint32> itemCounts(14, 0);
@@ -728,23 +761,17 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     std::vector<uint32> itemsToSell = GetItemsToSell(config, AHBplayer->GetGUID());
 
     // Loop variables
-    uint32 noSold    = 0; // Tracing counter
+    uint32 nbSold    = 0; // Tracing counter
     uint32 binEmpty  = 0; // Tracing counter
     uint32 noNeed    = 0; // Tracing counter
     uint32 tooMany   = 0; // Tracing counter
     uint32 loopBrk   = 0; // Tracing counter
     uint32 err       = 0; // Tracing counter
 
-    //LOG_ERROR("module", "AHBot [{}]: totalAuctions: {} ", _id, totalAuctions);
-    if (config->TraceSeller)
+    for (uint32 cnt = 0; cnt < nbItemsToSellThisCycle && cnt < itemsToSell.size(); ++cnt)
     {
-        LOG_INFO("module", "AHBot [{}]: AH: {} - Starting selling process with {} items to sell", _id, config->GetAHID(), itemsToSell.size());
-        LOG_INFO("module", "AHBot [{}]: AH: {} - Starting selling process with {} items to List", _id, config->GetAHID(), maxItemsToList);
-    }
+        uint32 itemTypeSelectedToSell = 0;
 
-    // maxItemsToList is the number of items to list
-    for (uint32 cnt = 0; cnt < items && cnt < itemsToSell.size(); ++cnt)
-    {
         uint32 itemID = itemsToSell[cnt];
 
         // Update Auctions count for current Bot
@@ -756,234 +783,112 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
             break;
         }
 
-        // Select item by rarity
-        uint32 choice = 0;
         uint32 loopbreaker = 0;
+
+        //
+        // Select, in rarity order, a new random item
+        //
 
         while (itemID == 0 && loopbreaker <= AUCTION_HOUSE_BOT_LOOP_BREAKER)
         {
             loopbreaker++;
 
-            // Log the sizes of all bins
-            if (config->DebugOutSeller)
+            // Poor
+
+            if ((config->GreyItemsBin.size() > 0) && (currentGreyItems < maxGreyI))
             {
-                LOG_INFO("module", "AHBot [{}]: GreyItemsBin.size: {}", _id, config->GreyItemsBin.size());
-                LOG_INFO("module", "AHBot [{}]: GreyTradeGoodsBin.size: {}", _id, config->GreyTradeGoodsBin.size());
-                LOG_INFO("module", "AHBot [{}]: WhiteItemsBin.size: {}", _id, config->WhiteItemsBin.size());
-                LOG_INFO("module", "AHBot [{}]: WhiteTradeGoodsBin.size: {}", _id, config->WhiteTradeGoodsBin.size());
-                LOG_INFO("module", "AHBot [{}]: GreenItemsBin.size: {}", _id, config->GreenItemsBin.size());
-                LOG_INFO("module", "AHBot [{}]: GreenTradeGoodsBin.size: {}", _id, config->GreenTradeGoodsBin.size());
-                LOG_INFO("module", "AHBot [{}]: BlueItemsBin.size: {}", _id, config->BlueItemsBin.size());
-                LOG_INFO("module", "AHBot [{}]: BlueTradeGoodsBin.size: {}", _id, config->BlueTradeGoodsBin.size());
-                LOG_INFO("module", "AHBot [{}]: PurpleItemsBin.size: {}", _id, config->PurpleItemsBin.size());
-                LOG_INFO("module", "AHBot [{}]: PurpleTradeGoodsBin.size: {}", _id, config->PurpleTradeGoodsBin.size());
-                LOG_INFO("module", "AHBot [{}]: OrangeItemsBin.size: {}", _id, config->OrangeItemsBin.size());
-                LOG_INFO("module", "AHBot [{}]: OrangeTradeGoodsBin.size: {}", _id, config->OrangeTradeGoodsBin.size());
-                LOG_INFO("module", "AHBot [{}]: YellowItemsBin.size: {}", _id, config->YellowItemsBin.size());
-                LOG_INFO("module", "AHBot [{}]: YellowTradeGoodsBin.size: {}", _id, config->YellowTradeGoodsBin.size());
+                itemTypeSelectedToSell = AHB_GREY_I;
+                itemID = getElement(config->GreyItemsBin, urand(0, config->GreyItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
-             // Poor
-            if ((config->GreyItemsBin.size() > 0) && (greyItems < config->GetMaximum(AHB_GREY_I)))
+            if (itemID == 0 && (config->GreyTradeGoodsBin.size() > 0) && (currentGreyTG < maxGreyTG))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->GreyItemsBin.size: {}", _id, config->GreyItemsBin.size());
-                if (config->GreyItemsBin.size() > 1)
-                {
-                    itemID = getElement(config->GreyItemsBin, urand(0, config->GreyItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->GreyItemsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 0;
-            }
-
-            if (itemID == 0 && (config->GreyTradeGoodsBin.size() > 0) && (greyTGoods < config->GetMaximum(AHB_GREY_TG)))
-            {
-                //LOG_INFO("module", "AHBot [{}]: config->GreyTradeGoodsBin.size: {}", _id, config->GreyTradeGoodsBin.size());
-                if (config->GreyTradeGoodsBin.size() > 1)
-                {
-                    itemID = getElement(config->GreyTradeGoodsBin, urand(0, config->GreyTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->GreyTradeGoodsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 7;
+                itemTypeSelectedToSell = AHB_GREY_TG;
+                itemID = getElement(config->GreyTradeGoodsBin, urand(0, config->GreyTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
             // Normal
-            if (itemID == 0 && (config->WhiteItemsBin.size() > 0) && (whiteItems < config->GetMaximum(AHB_WHITE_I)))
+
+            if (itemID == 0 && (config->WhiteItemsBin.size() > 0) && (currentWhiteItems < maxWhiteI))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->WhiteItemsBin.size: {}", _id, config->WhiteItemsBin.size());
-                if (config->WhiteItemsBin.size() > 1)
-                {
-                    itemID = getElement(config->WhiteItemsBin, urand(0, config->WhiteItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->WhiteItemsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 1;
+                itemTypeSelectedToSell = AHB_WHITE_I;
+                itemID = getElement(config->WhiteItemsBin, urand(0, config->WhiteItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
-            if (itemID == 0 && (config->WhiteTradeGoodsBin.size() > 0) && (whiteTGoods < config->GetMaximum(AHB_WHITE_TG)))
+            if (itemID == 0 && (config->WhiteTradeGoodsBin.size() > 0) && (currentWhiteTG < maxWhiteTG))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->WhiteTradeGoodsBin.size: {}", _id, config->WhiteTradeGoodsBin.size());
-                if (config->WhiteTradeGoodsBin.size() > 1)
-                {
-                    itemID = getElement(config->WhiteTradeGoodsBin, urand(0, config->WhiteTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->WhiteTradeGoodsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 8;
+                itemTypeSelectedToSell = AHB_WHITE_TG;
+                itemID = getElement(config->WhiteTradeGoodsBin, urand(0, config->WhiteTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
             // Uncommon
-            if (itemID == 0 && (config->GreenItemsBin.size() > 0) && (greenItems < config->GetMaximum(AHB_GREEN_I)))
+
+            if (itemID == 0 && (config->GreenItemsBin.size() > 0) && (currentGreenItems < maxGreenI))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->GreenItemsBin.size: {}", _id, config->GreenItemsBin.size());
-                if (config->GreenItemsBin.size() > 1)
-                {
-                    itemID = getElement(config->GreenItemsBin, urand(0, config->GreenItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->GreenItemsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 2;
+                itemTypeSelectedToSell = AHB_GREEN_I;
+                itemID = getElement(config->GreenItemsBin, urand(0, config->GreenItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
-            if (itemID == 0 && (config->GreenTradeGoodsBin.size() > 0) && (greenTGoods < config->GetMaximum(AHB_GREEN_TG)))
+            if (itemID == 0 && (config->GreenTradeGoodsBin.size() > 0) && (currentGreenTG < maxGreenTG))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->GreenTradeGoodsBin.size: {}", _id, config->GreenTradeGoodsBin.size());
-                if (config->GreenTradeGoodsBin.size() > 1)
-                {
-                    itemID = getElement(config->GreenTradeGoodsBin, urand(0, config->GreenTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->GreenTradeGoodsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 9;
+                itemTypeSelectedToSell = AHB_GREEN_TG;
+                itemID = getElement(config->GreenTradeGoodsBin, urand(0, config->GreenTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
             // Rare
-            if (itemID == 0 && (config->BlueItemsBin.size() > 0) && (blueItems < config->GetMaximum(AHB_BLUE_I)))
+
+            if (itemID == 0 && (config->BlueItemsBin.size() > 0) && (currentBlueItems < maxBlueI))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->BlueItemsBin.size: {}", _id, config->BlueItemsBin.size());
-                if (config->BlueItemsBin.size() > 1)
-                {
-                    itemID = getElement(config->BlueItemsBin, urand(0, config->BlueItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->BlueItemsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 3;
+                itemTypeSelectedToSell = AHB_BLUE_I;
+                itemID = getElement(config->BlueItemsBin, urand(0, config->BlueItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
-            if (itemID == 0 && (config->BlueTradeGoodsBin.size() > 0) && (blueTGoods < config->GetMaximum(AHB_BLUE_TG)))
+            if (itemID == 0 && (config->BlueTradeGoodsBin.size() > 0) && (currentBlueTG < maxBlueTG))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->BlueTradeGoodsBin.size: {}", _id, config->BlueTradeGoodsBin.size());
-                if (config->BlueTradeGoodsBin.size() > 1)
-                {
-                    itemID = getElement(config->BlueTradeGoodsBin, urand(0, config->BlueTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->BlueTradeGoodsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 10;
+                itemTypeSelectedToSell = AHB_BLUE_TG;
+                itemID = getElement(config->BlueTradeGoodsBin, urand(0, config->BlueTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
             // Epic
-            if (itemID == 0 && (config->PurpleItemsBin.size() > 0) && (purpleItems < config->GetMaximum(AHB_PURPLE_I)))
+
+            if (itemID == 0 && (config->PurpleItemsBin.size() > 0) && (currentPurpleItems < maxPurpleI))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->PurpleItemsBin.size: {}", _id, config->PurpleItemsBin.size());
-                if (config->PurpleItemsBin.size() > 1)
-                {
-                    itemID = getElement(config->PurpleItemsBin, urand(0, config->PurpleItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->PurpleItemsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 4;
+                itemTypeSelectedToSell = AHB_PURPLE_I;
+                itemID = getElement(config->PurpleItemsBin, urand(0, config->PurpleItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
-            if (itemID == 0 && (config->PurpleTradeGoodsBin.size() > 0) && (purpleTGoods < config->GetMaximum(AHB_PURPLE_TG)))
+            if (itemID == 0 && (config->PurpleTradeGoodsBin.size() > 0) && (currentPurpleTG < maxPurpleTG))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->PurpleTradeGoodsBin.size: {}", _id, config->PurpleTradeGoodsBin.size());
-                if (config->PurpleTradeGoodsBin.size() > 1)
-                {
-                    itemID = getElement(config->PurpleTradeGoodsBin, urand(0, config->PurpleTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->PurpleTradeGoodsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 11;
+                itemTypeSelectedToSell = AHB_PURPLE_TG;
+                itemID = getElement(config->PurpleTradeGoodsBin, urand(0, config->PurpleTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
             // Legendary
-            if (itemID == 0 && (config->OrangeItemsBin.size() > 0) && (orangeItems < config->GetMaximum(AHB_ORANGE_I)))
+
+            if (itemID == 0 && (config->OrangeItemsBin.size() > 0) && (currentOrangeItems < maxOrangeI))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->OrangeItemsBin.size: {}", _id, config->OrangeItemsBin.size());
-                if (config->OrangeItemsBin.size() > 1)
-                {
-                    itemID = getElement(config->OrangeItemsBin, urand(0, config->OrangeItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->OrangeItemsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 5;
+                itemTypeSelectedToSell = AHB_ORANGE_I;
+                itemID = getElement(config->OrangeItemsBin, urand(0, config->OrangeItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
-            if (itemID == 0 && (config->OrangeTradeGoodsBin.size() > 0) && (orangeTGoods < config->GetMaximum(AHB_ORANGE_TG)))
+            if (itemID == 0 && (config->OrangeTradeGoodsBin.size() > 0) && (currentOrangeTG < maxOrangeTG))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->OrangeTradeGoodsBin.size: {}", _id, config->OrangeTradeGoodsBin.size());
-                if (config->OrangeTradeGoodsBin.size() > 1)
-                {
-                    itemID = getElement(config->OrangeTradeGoodsBin, urand(0, config->OrangeTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->OrangeTradeGoodsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 12;
+                itemTypeSelectedToSell = AHB_ORANGE_TG;
+                itemID = getElement(config->OrangeTradeGoodsBin, urand(0, config->OrangeTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
             // Artifact
-            if (itemID == 0 && (config->YellowItemsBin.size() > 0) && (yellowItems < config->GetMaximum(AHB_YELLOW_I)))
+
+            if (itemID == 0 && (config->YellowItemsBin.size() > 0) && (currentYellowItems < maxYellowI))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->YellowItemsBin.size: {}", _id, config->YellowItemsBin.size());
-                if (config->YellowItemsBin.size() > 1)
-                {
-                    itemID = getElement(config->YellowItemsBin, urand(0, config->YellowItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->YellowItemsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 6;
+                itemTypeSelectedToSell = AHB_YELLOW_I;
+                itemID = getElement(config->YellowItemsBin, urand(0, config->YellowItemsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
-            if (itemID == 0 && (config->YellowTradeGoodsBin.size() > 0) && (yellowTGoods < config->GetMaximum(AHB_YELLOW_TG)))
+            if (itemID == 0 && (config->YellowTradeGoodsBin.size() > 0) && (currentYellowTG < maxYellowTG))
             {
-                //LOG_INFO("module", "AHBot [{}]: config->YellowTradeGoodsBin.size: {}", _id, config->YellowTradeGoodsBin.size());
-                if (config->YellowTradeGoodsBin.size() > 1)
-                {
-                    itemID = getElement(config->YellowTradeGoodsBin, urand(0, config->YellowTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
-                }
-                else
-                {
-                    itemID = getElement(config->YellowTradeGoodsBin, 0, _id, config->DuplicatesCount, auctionHouse);
-                }
-                choice = 13;
+                itemTypeSelectedToSell = AHB_YELLOW_TG;
+                itemID = getElement(config->YellowTradeGoodsBin, urand(0, config->YellowTradeGoodsBin.size() - 1), _id, config->DuplicatesCount, auctionHouse);
             }
 
             if (itemID == 0)
@@ -1079,7 +984,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
             if (baseBuyoutPrice == 0)
             {
-                if (config->SellMethod)
+                if (config->UseBuyPriceForSeller)
                 {
                     baseBuyoutPrice = prototype->BuyPrice;
                 }
@@ -1137,10 +1042,14 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         item->SetCount(stackCount);
 
         // Determine the auction time
-        uint32 etime = getElapsedTime(config->ElapsingTimeClass);
+        //
+
+        uint32 elapsingTime = getElapsedTime(config->ElapsingTimeClass);
 
         // Determine the deposit
-        uint32 dep   = sAuctionMgr->GetAuctionDeposit(ahEntry, etime, item, stackCount);
+        //
+
+        uint32 deposit = sAuctionMgr->GetAuctionDeposit(ahEntry, elapsingTime, item, stackCount);
 
         // Perform the auction
         auto trans = CharacterDatabase.BeginTransaction();
@@ -1155,8 +1064,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         auctionEntry->startbid          = bidPrice * stackCount;
         auctionEntry->buyout            = buyoutPrice * stackCount;
         auctionEntry->bid               = 0;
-        auctionEntry->deposit           = dep;
-        auctionEntry->expire_time       = (time_t)etime + time(NULL);
+        auctionEntry->deposit           = deposit;
+        auctionEntry->expire_time       = (time_t)elapsingTime + time(NULL);
         auctionEntry->auctionHouseEntry = ahEntry;
 
         item->SaveToDB(trans);
@@ -1168,69 +1077,72 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         CharacterDatabase.CommitTransaction(trans);
 
         // Increments the number of items presents in the auction
-        switch (choice)
+        // todo: reread config for actual values, maybe an array to not rely on local count that could potentially be mismatched from config.
+        // config is updated from callback received after auctionHouseObject->AddAuction(auctionEntry);
+        // or maybe reparse the server actual value each update cycle, would need profiling.
+        switch (itemTypeSelectedToSell)
         {
-        case 0:
-            ++greyItems;
+        case AHB_GREY_I:
+            ++currentGreyItems;
             break;
 
-        case 1:
-            ++whiteItems;
+        case AHB_WHITE_I:
+            ++currentWhiteItems;
             break;
 
-        case 2:
-            ++greenItems;
+        case AHB_GREEN_I:
+            ++currentGreenItems;
             break;
 
-        case 3:
-            ++blueItems;
+        case AHB_BLUE_I:
+            ++currentBlueItems;
             break;
 
-        case 4:
-            ++purpleItems;
+        case AHB_PURPLE_I:
+            ++currentPurpleItems;
             break;
 
-        case 5:
-            ++orangeItems;
+        case AHB_ORANGE_I:
+            ++currentOrangeItems;
             break;
 
-        case 6:
-            ++yellowItems;
+        case AHB_YELLOW_I:
+            ++currentYellowItems;
             break;
 
-        case 7:
-            ++greyTGoods;
+        case AHB_GREY_TG:
+            ++currentGreyTG;
             break;
 
-        case 8:
-            ++whiteTGoods;
+        case AHB_WHITE_TG:
+            ++currentWhiteTG;
             break;
 
-        case 9:
-            ++greenTGoods;
+        case AHB_GREEN_TG:
+            ++currentGreenTG;
             break;
 
-        case 10:
-            ++blueTGoods;
+        case AHB_BLUE_TG:
+            ++currentBlueTG;
             break;
 
-        case 11:
-            ++purpleTGoods;
+        case AHB_PURPLE_TG:
+            ++currentPurpleTG;
             break;
 
-        case 12:
-            ++orangeTGoods;
+        case AHB_ORANGE_TG:
+            ++currentOrangeTG;
             break;
 
-        case 13:
-            ++yellowTGoods;
+        case AHB_YELLOW_TG:
+            ++currentYellowTG;
             break;
 
         default:
             break;
         }
 
-        noSold++;
+        nbSold++;
 
         // Log the successful listing of an item
         if (config->TraceSeller)
@@ -1242,8 +1154,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
     if (config->TraceSeller)
     {
-        LOG_INFO("module", "AHBot [{}]: listed {} items in auctionhouse {}", _id, noSold, config->GetAHID());
-        LOG_INFO("module", "AHBot [{}]: auctionhouse {}, req={}, sold={}, aboveMin={}, aboveMax={}, loopBrk={}, noNeed={}, tooMany={}, binEmpty={}, err={}", _id, config->GetAHID(), items, noSold, aboveMin, aboveMax, loopBrk, noNeed, tooMany, binEmpty, err);
+        LOG_INFO("module", "AHBot [{}]: auctionhouse {}, req={}, sold={}, aboveMin={}, aboveMax={}, loopBrk={}, noNeed={}, tooMany={}, binEmpty={}, err={}", _id, config->GetAHID(), nbItemsToSellThisCycle, nbSold, aboveMin, aboveMax, loopBrk, noNeed, tooMany, binEmpty, err);
     }
 
 }
@@ -1464,6 +1375,10 @@ void AuctionHouseBot::Update()
 
     ObjectAccessor::AddObject(&_AHBplayer);
 
+    //
+    // Perform update for the factions markets
+    //
+
     // Perform update for the factions markets
     if (!sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_AUCTION))
     {
@@ -1478,6 +1393,11 @@ void AuctionHouseBot::Update()
 
             if ((currentTime - _lastrun_a_sec_Buy) >= (_allianceConfig->GetAllianceBiddingInterval() * MINUTE) && (_allianceConfig->GetAllianceBidsPerInterval() > 0))
             {
+                if (_allianceConfig->TraceBuyer)
+                {
+                    LOG_INFO("module", "AHBot [{}]: Begin Buy for Alliance...", _id);
+                }
+
                 Buy(&_AHBplayer, _allianceConfig, &_session);
                 _lastrun_a_sec_Buy = currentTime;
             }
@@ -1494,6 +1414,10 @@ void AuctionHouseBot::Update()
 
             if ((currentTime - _lastrun_h_sec_Buy) >= (_hordeConfig->GetHordeBiddingInterval() * MINUTE) && (_hordeConfig->GetHordeBidsPerInterval() > 0))
             {
+                if (_hordeConfig->TraceBuyer)
+                {
+                    LOG_INFO("module", "AHBot [{}]: Begin Buy for Horde...", _id);
+                }
                 Buy(&_AHBplayer, _hordeConfig, &_session);
                 _lastrun_h_sec_Buy = currentTime;
             }
