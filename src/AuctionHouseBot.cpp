@@ -654,8 +654,8 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
 
     // Divide maxItems by the number of bots to get the max items per bot
     uint32 numBots = config->GetBotGUIDs().size();
-    uint32 maxAuctionsPerBot = (maxItems + numBots - 1) / numBots;
-    uint32 minAuctionsPerBot = (minItems + numBots - 1) / numBots;
+    uint32 maxAuctionsPerBot = (maxTotalItems + numBots - 1) / numBots;
+    uint32 minAuctionsPerBot = (minTotalItems + numBots - 1) / numBots;
 
     bool   aboveMin = false;
     bool   aboveMax = false;
@@ -710,7 +710,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     // Log the number of items to list
     if (config->DebugOutSeller)
     {
-        LOG_INFO("module", "AHBot [{}]: Trying to list {} items", _id, items);
+        LOG_INFO("module", "AHBot [{}]: Trying to list {} items", _id, nbItemsToSellThisCycle);
     }
 
     // Use the max stack size configuration value
