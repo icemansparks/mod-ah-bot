@@ -772,9 +772,9 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         uint32 itemID = itemsToSell[cnt];
 
         // Update Auctions count for current Bot
-        auctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
+        nbOfAuctions = getNofAuctions(config, auctionHouse, AHBplayer->GetGUID());
 
-        if (auctions >= maxAuctionsPerBot)
+        if (nbOfAuctions >= maxAuctionsPerBot)
         {
             LOG_INFO("module", "AHBot [{}]: Reached max auctions per bot: {}", _id, maxAuctionsPerBot);
             break;
