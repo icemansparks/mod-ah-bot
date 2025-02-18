@@ -599,7 +599,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         }
 
         // Prevent to bid again on the same auction
-        possibleBids.erase(it);
+        auctionsGuidsToConsider.erase(it);
     }
 
     LOG_INFO("module", "AHBot [{}]: Completed buying process", _id);
