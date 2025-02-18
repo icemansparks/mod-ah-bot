@@ -619,7 +619,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     // Check the given limits
     //
 
-    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
     uint32 minTotalItems = config->GetMinItems();
     uint32 maxTotalItems = config->GetMaxItems();
     uint32 maxItemsToList = 0;
@@ -644,6 +643,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         LOG_ERROR("module", "AHBot [{}]: Could not retrieve auction house object", _id);
         return;
     }
+    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
 
     // don't mess with the AH update let server do it.
     //auctionHouseObject->Update();
