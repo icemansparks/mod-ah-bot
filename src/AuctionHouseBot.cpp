@@ -1994,7 +1994,7 @@ void AuctionHouseBot::CleanupOldAuctionHistory()
     if (result)
     {
         Field* fields = result->Fetch();
-        _lastCleanupTime = fields[0].Get<uint32>();
+        _lastCleanupTime = static_cast<time_t>(fields[0].Get<uint64>());
     }
     else
     {
