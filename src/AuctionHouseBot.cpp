@@ -589,8 +589,8 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             sAuctionMgr->RemoveAItem(auction->item_guid);
             auctionHouseObject->RemoveAuction(auction);
 
-
-            CharacterDatabase.CommitTransaction(trans);
+            //old transaction commit position
+            //CharacterDatabase.CommitTransaction(trans);
 
             if (config->TraceBuyer)
             {
@@ -598,6 +598,8 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             }
         }
     }
+    // moved transaction after loop
+    CharacterDatabase.CommitTransaction(trans);
 
     LOG_INFO("module", "AHBot [{}]: Completed buying process", _id);
 }
