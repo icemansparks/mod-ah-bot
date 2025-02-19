@@ -294,9 +294,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         LOG_INFO("module", "AHBot [{}]: Considering {} auctions per interval to bid on.", _id, bidsPerInterval);
     }
 
-    // Define the transaction object outside the loop
-    auto trans = CharacterDatabase.BeginTransaction();
-
     for (uint32 count = 1; count <= bidsPerInterval; ++count)
     {
         if(config->DebugOutBuyer)
@@ -566,7 +563,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         {
             //
             // Perform the buyout
-            //auto trans = CharacterDatabase.BeginTransaction();
+            auto trans = CharacterDatabase.BeginTransaction();
 
             if ((auction->bidder) && (AHBplayer->GetGUID() != auction->bidder))
             {
@@ -592,8 +589,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             sAuctionMgr->RemoveAItem(auction->item_guid);
             auctionHouseObject->RemoveAuction(auction);
 
-            //old transaction commit position
-            //CharacterDatabase.CommitTransaction(trans);
+            CharacterDatabase.CommitTransaction(trans);
 
             if (config->TraceBuyer)
             {
@@ -601,8 +597,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             }
         }
     }
-    // moved transaction after loop
-    CharacterDatabase.CommitTransaction(trans);
 
     LOG_INFO("module", "AHBot [{}]: Completed buying process", _id);
 }
@@ -769,9 +763,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     uint32 tooMany   = 0; // Tracing counter
     uint32 loopBrk   = 0; // Tracing counter
     uint32 err       = 0; // Tracing counter
-
-    // Define the transaction object outside the loop
-    auto trans = CharacterDatabase.BeginTransaction();
 
     for (uint32 cnt = 0; cnt < nbItemsToSellThisCycle && cnt < itemsToSell.size(); ++cnt)
     {
@@ -1057,7 +1048,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         uint32 deposit = sAuctionMgr->GetAuctionDeposit(ahEntry, elapsingTime, item, stackCount);
 
         // Perform the auction
-        //auto trans = CharacterDatabase.BeginTransaction();
+        auto trans = CharacterDatabase.BeginTransaction();
 
         AuctionEntry* auctionEntry      = new AuctionEntry();
         auctionEntry->Id                = sObjectMgr->GenerateAuctionID();
@@ -1156,9 +1147,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         }
 
     }
-
-    // Commit the transaction after the loop to ensure all items are listed
-    CharacterDatabase.CommitTransaction(trans);
 
     if (config->TraceSeller)
     {
