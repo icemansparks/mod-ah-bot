@@ -223,36 +223,25 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         return;
     }
 
-    //
     // Retrieve items not owned by the bot and not bought/bidded on by the bot
-    //
-
     QueryResult ahContentQueryResult = CharacterDatabase.Query("SELECT id FROM auctionhouse WHERE houseid={} AND itemowner<>{} AND buyguid<>{}", config->GetAHID(), _id, _id);
 
-    if (!ahContentQueryResult)
+    if (!ahContentQueryResult || ahContentQueryResult->GetRowCount() == 0)
     {
         return;
     }
 
-    if (ahContentQueryResult->GetRowCount() == 0)
-    {
-        return;
-    }
-
-    //
     // Fetches content of selected AH to look for possible bids
-    //
-
     AuctionHouseObject* auctionHouseObject = sAuctionMgr->GetAuctionsMap(config->GetAHFID());
     std::vector<uint32> auctionsGuidsToConsider;
 
     do
     {
-        uint32 autionGuid = ahContentQueryResult->Fetch()->Get<uint32>();
-        auctionsGuidsToConsider.push_back(autionGuid);
+        uint32 auctionGuid = ahContentQueryResult->Fetch()->Get<uint32>();
+        auctionsGuidsToConsider.push_back(auctionGuid);
     } while (ahContentQueryResult->NextRow());
 
-    if(config->DebugOutBuyer)
+    if (config->DebugOutBuyer)
     {
         LOG_INFO("module", "AHBot [{}]: Found {} possible bids", _id, auctionsGuidsToConsider.size());
     }
@@ -266,7 +255,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         {
             LOG_INFO("module", "AHBot [{}]: no auctions to bid on has been recovered in auction house {}", _id, config->GetAHID());
         }
-
         return;
     }
 
@@ -296,7 +284,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
     for (uint32 count = 1; count <= bidsPerInterval; ++count)
     {
-        if(config->DebugOutBuyer)
+        if (config->DebugOutBuyer)
         {
             LOG_INFO("module", "AHBot [{}]: Attempting bid {}/{}", _id, count, bidsPerInterval);
         }
@@ -323,7 +311,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         {
             if (config->DebugOutBuyer)
             {
-                LOG_ERROR("module", "AHBot [{}]: Auction id: {} Possible entry to buy/bid from AH pool is invalid, this should not happen, moving on next auciton", _id, auctionID);
+                LOG_ERROR("module", "AHBot [{}]: Auction id: {} Possible entry to buy/bid from AH pool is invalid, this should not happen, moving on next auction", _id, auctionID);
             }
             continue;
         }
@@ -337,14 +325,12 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         // Get the item information
         Item* pItem = sAuctionMgr->GetAItem(auction->item_guid);
-
         if (!pItem)
         {
             if (config->DebugOutBuyer)
             {
                 LOG_ERROR("module", "AHBot [{}]: item {} doesn't exist, perhaps bought already?", _id, auction->item_guid.ToString());
             }
-
             continue;
         }
 
@@ -539,14 +525,13 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                     //
 
                     auto trans = CharacterDatabase.BeginTransaction();
-
                     sAuctionMgr->SendAuctionOutbiddedMail(auction, bidPrice, session->GetPlayer(), trans);
-                    CharacterDatabase.CommitTransaction  (trans);
+                    CharacterDatabase.CommitTransaction(trans);
                 }
             }
 
             auction->bidder = AHBplayer->GetGUID();
-            auction->bid    = bidPrice;
+            auction->bid = bidPrice;
             sAuctionMgr->GetAuctionHouseSearcher()->UpdateBid(auction);
 
             //
