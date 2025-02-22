@@ -1070,7 +1070,7 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         auctionHouse->AddAuction(auctionEntry);
         auctionEntry->SaveToDB(trans);
 
-        //CharacterDatabase.CommitTransaction(trans);
+        CharacterDatabase.CommitTransaction(trans);
 
         // Increments the number of items presents in the auction
         // todo: reread config for actual values, maybe an array to not rely on local count that could potentially be mismatched from config.
