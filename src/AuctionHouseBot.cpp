@@ -1989,7 +1989,7 @@ void AuctionHouseBot::CleanupOldAuctionHistory()
     }
 
     // Read the last cleanup time from the database
-    QueryResult result = WorldDatabase.Query("SELECT last_cleanup_time FROM mod_auctionhousebot_cleanup_time WHERE id = 1");
+    QueryResult result = WorldDatabase.Query("SELECT UNIX_TIMESTAMP(last_cleanup_time) FROM mod_auctionhousebot_cleanup_time WHERE id = 1");
     if (result)
     {
         Field* fields = result->Fetch();
