@@ -224,7 +224,10 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     }
 
     // Retrieve items not owned by the bot and not bought/bidded on by the bot
-    QueryResult ahContentQueryResult = CharacterDatabase.Query("SELECT id FROM auctionhouse WHERE houseid={} AND itemowner<>{} AND buyguid<>{}", config->GetAHID(), _id, _id);
+    std::string botGUIDsStr = JoinGUIDs(config->GetBotGUIDs());
+    uint32 auctionHouseID = config->GetAHID();
+    LOG_INFO("module", "AHBot [{}]: Querying auction house {} for items not owned by bots", _id, auctionHouseID);
+    QueryResult ahContentQueryResult = CharacterDatabase.Query("SELECT id FROM auctionhouse WHERE  houseid = {} AND itemowner NOT IN ({}) AND buyguid NOT IN ({})", auctionHouseID, botGUIDsStr, botGUIDsStr);
 
     if (!ahContentQueryResult || ahContentQueryResult->GetRowCount() == 0)
     {
