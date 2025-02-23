@@ -250,8 +250,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     }
 
     // If it's not possible to bid stop here
-    //
-
     if (auctionsGuidsToConsider.empty())
     {
         if (config->DebugOutBuyer)
@@ -278,8 +276,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
     }
 
     // Perform the operation for a maximum amount of bids attempts configured
-    //
-
     if (config->TraceBuyer)
     {
         LOG_INFO("module", "AHBot [{}]: Considering {} auctions per interval to bid on.", _id, bidsPerInterval);
@@ -293,8 +289,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         }
 
         // Choose a random auction from possible auctions
-        //
-
         uint32 randomIndex = urand(0, auctionsGuidsToConsider.size() - 1);
 
         std::vector<uint32>::iterator itBegin = auctionsGuidsToConsider.begin();
@@ -304,10 +298,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
 
         AuctionEntry* auction = auctionHouseObject->GetAuction(auctionID);
 
-        //
         // Prevent to bid again on the same auction
-        //
-
         auctionsGuidsToConsider.erase(itBegin + randomIndex);
 
         if (!auction)
