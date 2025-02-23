@@ -356,9 +356,6 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
         uint64 SellPriceValue = maxPrice > 0 ? maxPrice : prototype->SellPrice;
         uint64 BuyPriceValue = avgPrice > 0 ? avgPrice : prototype->BuyPrice;
 
-        // Calculate the bid and buyout prices
-        uint32 currentprice = auction->bid ? auction->bid : auction->startbid;
-        double bidrate = static_cast<double>(urand(1, 100)) / 100;
         long double maximumBid = 0;
 
         if (config->TraceBuyer)
@@ -408,7 +405,7 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
                 //if (currentprice < SellPriceToUse * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality))
 
                 uint64 maxPriceToUse = maxPrice > 0 ? (maxPrice * pItem->GetCount()) : (SellPriceValue * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
-                if (currentprice < maxPriceToUse)
+                if (currentPrice < maxPriceToUse)
                 {
                     maximumBid = maxPriceToUse;
                 }
@@ -429,6 +426,10 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             if (prototype->Quality <= AHB_MAX_QUALITY)
             {
                 uint64 maxPriceToUse = avgPrice > 0 ? (avgPrice * pItem->GetCount()) : (BuyPriceValue * pItem->GetCount() * config->GetBuyerPrice(prototype->Quality));
+                if (currentPrice < maxPriceToUse)
+                {
+                    maximumBid = maxPriceToUse;
+                }
             }
             else
             {
@@ -605,12 +606,12 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     //
     // Check the given limits
     //
-
+    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
     uint32 minTotalItems = config->GetMinItems();
     uint32 maxTotalItems = config->GetMaxItems();
     uint32 maxItemsToList = 0;
 
-    if (maxTotalItems == 0)
+    if (maxTotalItems == 0  || totalAuctions >= maxTotalItems)
     {
         return;
     }
@@ -630,7 +631,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         LOG_ERROR("module", "AHBot [{}]: Could not retrieve auction house object", _id);
         return;
     }
-    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
 
     // don't mess with the AH update let server do it.
     //auctionHouseObject->Update();
