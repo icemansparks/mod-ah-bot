@@ -288,6 +288,15 @@ void AuctionHouseBot::Buy(Player* AHBplayer, AHBConfig* config, WorldSession* se
             LOG_INFO("module", "AHBot [{}]: Attempting bid {}/{}", _id, count, bidsPerInterval);
         }
 
+        if (auctionsGuidsToConsider.empty())
+        {
+            if (config->DebugOutBuyer)
+            {
+                LOG_INFO("module", "AHBot [{}]: No more auctions to consider.", _id);
+            }
+            break;
+        }
+
         // Choose a random auction from possible auctions
         uint32 randomIndex = urand(0, auctionsGuidsToConsider.size() - 1);
 
