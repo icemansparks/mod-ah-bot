@@ -603,20 +603,6 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
-    //
-    // Check the given limits
-    //
-    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
-    uint32 minTotalItems = config->GetMinItems();
-    uint32 maxTotalItems = config->GetMaxItems();
-    uint32 maxItemsToList = 0;
-
-    if (maxTotalItems == 0  || totalAuctions >= maxTotalItems)
-    {
-        return;
-    }
-
-    //
     // Retrieve the auction house situation
     AuctionHouseEntry const* ahEntry = sAuctionMgr->GetAuctionHouseEntryFromFactionTemplate(config->GetAHFID());
     if (!ahEntry)
@@ -629,6 +615,19 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
     if (!auctionHouse)
     {
         LOG_ERROR("module", "AHBot [{}]: Could not retrieve auction house object", _id);
+        return;
+    }
+
+    //
+    // Check the given limits
+    //
+    uint32 totalAuctions = getTotalAuctions(config, auctionHouse);
+    uint32 minTotalItems = config->GetMinItems();
+    uint32 maxTotalItems = config->GetMaxItems();
+    uint32 maxItemsToList = 0;
+
+    if (maxTotalItems == 0  || totalAuctions >= maxTotalItems)
+    {
         return;
     }
 
