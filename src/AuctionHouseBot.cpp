@@ -62,16 +62,17 @@ AuctionHouseBot::AuctionHouseBot(uint32 account, uint32 id)
     _lastrun_n_sec_Buy  = time(NULL);
 
     // Initialize _lastCleanupTime from the database
-    QueryResult result = WorldDatabase.Query("SELECT last_cleanup_time FROM mod_auctionhousebot_cleanup_time WHERE id = 1");
+    QueryResult result = WorldDatabase.Query("SELECT UNIX_TIMESTAMP(last_cleanup_time) FROM mod_auctionhousebot_cleanup_time WHERE id = 1");
     if (result)
     {
         Field* fields = result->Fetch();
-        _lastCleanupTime = fields[0].Get<uint32>();
+        //_lastCleanupTime = fields[0].Get<uint32>();
+        _lastCleanupTime = static_cast<time_t>(fields[0].Get<uint64>());
     }
     else
     {
         // If no record exists, insert a new one with the current time
-        WorldDatabase.Execute("INSERT INTO mod_auctionhousebot_cleanup_time (id, last_cleanup_time) VALUES (1, NOW())");
+        WorldDatabase.Execute("INSERT INTO mod_auctionhousebot_cleanup_time (id, last_cleanup_time) VALUES (1, FROM_UNIXTIME({}))", time(NULL));
         _lastCleanupTime = time(NULL);
     }
 
@@ -1985,7 +1986,7 @@ void AuctionHouseBot::CleanupOldAuctionHistory()
     else
     {
         // If no record exists, insert a new one with the current time
-        WorldDatabase.Execute("INSERT INTO mod_auctionhousebot_cleanup_time (id, last_cleanup_time) VALUES (1, NOW())");
+        WorldDatabase.Execute("INSERT INTO mod_auctionhousebot_cleanup_time (id, last_cleanup_time) VALUES (1, FROM_UNIXTIME({}))", time(NULL));
         _lastCleanupTime = time(NULL);
     }
 
@@ -2015,7 +2016,7 @@ void AuctionHouseBot::CleanupOldAuctionHistory()
         }
 
         // Update the last cleanup time in the database
-        WorldDatabase.Execute("UPDATE mod_auctionhousebot_cleanup_time SET last_cleanup_time = NOW() WHERE id = 1");
+        WorldDatabase.Execute("UPDATE mod_auctionhousebot_cleanup_time SET last_cleanup_time = FROM_UNIXTIME({}) WHERE id = 1", currentTime);
         _lastCleanupTime = currentTime;
     }
 }
