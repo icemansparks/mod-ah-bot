@@ -1359,11 +1359,7 @@ void AuctionHouseBot::Update()
         // Alliance
         if (_allianceConfig)
         {
-            if ((currentTime - _lastrun_a_sec_Sell) >= (_allianceConfig->GetAllianceSellingInterval() * MINUTE))
-            {
-                Sell(&_AHBplayer, _allianceConfig);
-                _lastrun_a_sec_Sell = currentTime;
-            }
+            Sell(&_AHBplayer, _allianceConfig);
 
             if ((currentTime - _lastrun_a_sec_Buy) >= (_allianceConfig->GetAllianceBiddingInterval() * MINUTE) && (_allianceConfig->GetAllianceBidsPerInterval() > 0))
             {
@@ -1380,11 +1376,7 @@ void AuctionHouseBot::Update()
         // Horde
         if (_hordeConfig)
         {
-            if ((currentTime - _lastrun_h_sec_Sell) >= (_hordeConfig->GetHordeSellingInterval() * MINUTE))
-            {
-                Sell(&_AHBplayer, _hordeConfig);
-                _lastrun_h_sec_Sell = currentTime;
-            }
+            Sell(&_AHBplayer, _hordeConfig);
 
             if ((currentTime - _lastrun_h_sec_Buy) >= (_hordeConfig->GetHordeBiddingInterval() * MINUTE) && (_hordeConfig->GetHordeBidsPerInterval() > 0))
             {
@@ -1400,11 +1392,7 @@ void AuctionHouseBot::Update()
         // Neutral
         if (_neutralConfig)
         {
-            if ((currentTime - _lastrun_n_sec_Sell) >= (_neutralConfig->GetNeutralSellingInterval() * MINUTE))
-            {
-                Sell(&_AHBplayer, _neutralConfig);
-                _lastrun_n_sec_Sell = currentTime;
-            }
+            Sell(&_AHBplayer, _neutralConfig);
 
             if ((currentTime - _lastrun_n_sec_Buy) >= (_neutralConfig->GetNeutralBiddingInterval() * MINUTE) && (_neutralConfig->GetNeutralBidsPerInterval() > 0))
             {
