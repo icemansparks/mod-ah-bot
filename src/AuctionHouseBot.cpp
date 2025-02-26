@@ -659,29 +659,15 @@ void AuctionHouseBot::Sell(Player* AHBplayer, AHBConfig* config)
         return;
     }
 
-     if (totalAuctions < minTotalItems)
-     {
-         // Add new auctions quickly until totalAuctions reach minItems
-         maxItemsToList = minAuctionsPerBot - nbOfAuctions;
+    maxItemsToList = maxAuctionsPerBot - nbOfAuctions;
 
-         // Ensure maxItemsToList is less than or equal to minAuctionsPerBot
-         if (maxItemsToList > minAuctionsPerBot)
-         {
-             maxItemsToList = minAuctionsPerBot;
-         }
+    // Always sell a fixed number of items per tick based on config
+    nbItemsToSellThisCycle = config->ItemsPerCycle;
 
-         nbItemsToSellThisCycle = urand(maxItemsToList, minAuctionsPerBot);
-    }
-    else
+    if (nbItemsToSellThisCycle > maxItemsToList)
     {
-        // Gradually increase the number of auctions with ItemsPerCycle
-        maxItemsToList = maxAuctionsPerBot - nbOfAuctions;
-        nbItemsToSellThisCycle = config->ItemsPerCycle;
-
-        if (nbItemsToSellThisCycle > maxItemsToList)
-        {
-            nbItemsToSellThisCycle = maxItemsToList;
-        }
+        // make sure we dont list more items than needed per bot
+        nbItemsToSellThisCycle = maxItemsToList;
     }
 
     // Log the number of items to list
